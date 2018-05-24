@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "PolyedronShape"
+		var ResourceId = 0x5aa0cfa2c21f7c1c
+	}
+}

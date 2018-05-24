@@ -1,0 +1,94 @@
+
+
+class GaussMapVisualizer : ZilchComponent
+{
+  [Property] var TargetPath : CogPath = CogPath();
+  
+  [Property] var EdgeColor : Real4 = Colors.Blue;
+  [Property] var VertexColor : Real4 = Colors.Red;
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(init, Events.AllObjectsInitialized, this.OnAllObjectsInitialized);
+    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+
+  function OnAllObjectsInitialized(event : CogInitializerEvent)
+  {
+    this.Run();
+  }
+  
+  var Vertices : Array[Real3] = Array[Real3]();
+  var Edges : Array[Integer2] = Array[Integer2]();
+  
+  function Run()
+  {
+    var qHull = this.TargetPath.QuickHullMeshRenderer;
+    if(qHull == null)
+      return;
+    qHull.Run();
+  }
+  
+  function Compute()
+  {
+    var transform = this.TargetPath.Transform;
+    
+    var shape = this.TargetPath.PolyedronShape;
+    if(shape != null)
+      this.Compute(shape.Mesh, transform);
+  }
+  
+  function Compute(mesh : QMesh, transform : Transform)
+  {
+    this.Vertices.Clear();
+    this.Edges.Clear();
+    
+    foreach(var faceNormal in mesh.FaceNormals)
+    {
+      faceNormal = Math.Normalize(transform.TransformNormal(faceNormal));
+      this.Vertices.Add(faceNormal);
+    }
+    foreach(var edge in mesh.UniqueEdges)
+    {
+      var twin = mesh.Edges[edge.Twin];
+      this.Edges.Add(Integer2(edge.Face, twin.Face));
+    }
+  }
+  
+  function Draw()
+  {
+    this.Compute();
+    
+    var center = this.Owner.Transform.WorldTranslation;
+    var radius = 0.51;
+    foreach(var vertex in this.Vertices)
+    {
+      var point = center + radius * vertex;
+      DebugDraw.Add(DebugLine(center, point));
+      DebugDraw.Add(DebugSphere(point, 0.01) {Color = this.VertexColor});
+    }
+    
+    foreach(var edge in this.Edges)
+    {
+      var p0 = this.Vertices[edge.X];
+      var p1 = this.Vertices[edge.Y];
+      this.DrawArc(p0, p1, radius);
+    }
+  }
+  
+  function DrawArc(p0 : Real3, p1 : Real3, radius : Real)
+  {
+    var center = this.Owner.Transform.WorldTranslation;
+    
+    var mid = Math.Slerp(p0, p1, 0.5);
+    p0 = p0 * radius + center;
+    p1 = p1 * radius + center;
+    mid = mid * radius + center;
+    DebugDraw.Add(DebugArc(p0, mid, p1) { Color = this.EdgeColor});
+  }
+  
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    this.Draw();
+  }
+}

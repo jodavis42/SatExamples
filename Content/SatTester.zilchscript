@@ -1,0 +1,96 @@
+class SatTester : ZilchComponent
+{
+  [Property] var Shape0Path = CogPath();
+  [Property] var Shape1Path = CogPath();
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+  }
+
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    var poly0 = this.Shape0Path.PolyedronShape;
+    var poly1 = this.Shape1Path.PolyedronShape;
+    if(poly0 == null || poly1 == null)
+      return;
+    
+    this.Run(poly0, poly1);
+  }
+  
+  var TotalCount : Integer = 0;
+  var TrimmedCount : Integer = 0;
+  
+  function Run(poly0 : PolyedronShape, poly1 : PolyedronShape)
+  {
+    this.TotalCount = 0;
+    this.TrimmedCount = 0;
+    for(var i = 0; i < poly0.Mesh.UniqueEdges.Count; ++i)
+    {
+      for(var j = 0; j < poly1.Mesh.UniqueEdges.Count; ++j)
+      {
+        this.TestEdge(poly0, i, poly1, j);
+      }
+    }
+    
+    Console.WriteLine("`this.TrimmedCount` / `this.TotalCount`, (`poly0.Mesh.Edges.Count`, `poly1.Mesh.Edges.Count`)");
+  }
+  
+  function TestEdge(poly0 : PolyedronShape, edge0Index : Integer, poly1 : PolyedronShape, edge1Index : Integer)
+  {
+    var edge0 = poly0.Mesh.Edges[edge0Index];
+    var twin0 = poly0.Mesh.Edges[edge0.Twin];
+    var edge1 = poly1.Mesh.Edges[edge1Index];
+    var twin1 = poly1.Mesh.Edges[edge1.Twin];
+    
+    var normal0A = poly0.Mesh.FaceNormals[edge0.Face];
+    var normal0B = poly0.Mesh.FaceNormals[twin0.Face];
+    var normal1A = poly1.Mesh.FaceNormals[edge1.Face];
+    var normal1B = poly1.Mesh.FaceNormals[twin1.Face];
+    
+    var transform0 = poly0.Owner.Transform;
+    var transform1 = poly1.Owner.Transform;
+    normal0A = transform0.TransformNormal(normal0A);
+    normal0B = transform0.TransformNormal(normal0B);
+    normal1A = transform1.TransformNormal(normal1A);
+    normal1B = transform1.TransformNormal(normal1B);
+    
+    ++this.TotalCount;
+    var isMinkowski = this.TestMinkowskiFace(normal0A, normal0B, -normal1A, -normal1B);
+    if(isMinkowski)
+    {
+      ++this.TrimmedCount;
+      Console.WriteLine(this.Distance(poly0, edge0, poly1, edge1));
+    }
+  }
+  
+  function TestMinkowskiFace(a : Real3, b : Real3, c : Real3, d : Real3) : Boolean
+  {
+    var bxa = Math.Cross(b, a);
+    var dxc = Math.Cross(d, c);
+    var cba = Math.Dot(c, bxa);
+    var dba = Math.Dot(d, bxa);
+    var adc = Math.Dot(a, dxc);
+    var bdc = Math.Dot(b, dxc);
+    
+    return cba * dba < 0 && adc * bdc < 0 && cba * bdc > 0;
+  }
+  
+  function Distance(poly0 : PolyedronShape, edge0: QEdge, poly1 : PolyedronShape, edge1 : QEdge) : Real
+  {
+    var twin0 = poly0.Mesh.Edges[edge0.Twin];
+    var twin1 = poly1.Mesh.Edges[edge1.Twin];
+    var p0A = poly0.Mesh.Vertices[edge0.Vertex];
+    var p0B = poly0.Mesh.Vertices[twin0.Vertex];
+    var p1A = poly1.Mesh.Vertices[edge1.Vertex];
+    var p1B = poly1.Mesh.Vertices[twin1.Vertex];
+    
+    var edgeDir0 = p0B - p0A;
+    var edgeDir1 = p1B - p1A;
+    
+    var normal = Math.Normalize(Math.Cross(edgeDir0, edgeDir1));
+    //test sign
+    
+    return Math.Dot(normal, p1B - p0B);
+  }
+}

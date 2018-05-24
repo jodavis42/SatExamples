@@ -1,0 +1,117 @@
+class QuickHullVertexQueryEvent : ZilchEvent
+{
+  var Vertices : Array[Real3] = null;
+  var TestName : String = "Test";
+  sends QueryQuickHullVertices : QuickHullVertexQueryEvent;
+}
+
+class QEdge
+{
+  var Vertex : Integer;
+  var Twin : Integer;
+  var Face : Integer;
+}
+
+class QFace
+{
+  var Edges = Array[Integer]();
+}
+
+
+class QMesh
+{
+  var Vertices = Array[Real3]();
+  var Edges = Array[QEdge]();
+  var Faces = Array[QFace]();
+  
+  var FaceNormals = Array[Real3]();
+  var UniqueEdges = Array[QEdge]();
+  
+  function Compute(mesh : Mesh)
+  {
+    var collector = VertexCollector();
+    var meshVertices = collector.GetVertices(null, mesh);
+    var quickHull = QuickHull3D();
+    foreach(var vertex in meshVertices)
+      quickHull.Add(vertex);
+    if(!quickHull.Build())
+      return;
+    
+    this.Vertices.Clear();
+    this.Edges.Clear();
+    this.Faces.Clear();
+    this.FaceNormals.Clear();
+    this.UniqueEdges.Clear();
+    
+    var qMesh = quickHull.Mesh;
+    
+    var vertices = qMesh.Vertices;
+    var edges = qMesh.Edges;
+    var faces = qMesh.Faces;
+    
+    for(var i = 0; i < vertices.Count; ++i)
+      this.Vertices.Add(vertices[i]);
+    for(var i = 0; i < edges.Count; ++i)
+    {
+      var edge = edges[i];
+      this.Edges.Add(QEdge() {Vertex = edge.VertexIndex, Twin = edge.TwinIndex, Face = edge.FaceIndex});
+    }
+    for(var i = 0; i < faces.Count; ++i)
+    {
+      var face = faces[i];
+      var qFace = QFace();
+      for(var eI = 0; eI < face.Edges.Count; ++eI)
+      {
+        qFace.Edges.Add(face.Edges[eI]);
+      }
+      this.Faces.Add(qFace);
+    }
+    
+    this.Cache();
+  }
+  
+  function Cache()
+  {
+    foreach(var face in this.Faces)
+      this.FaceNormals.Add(this.ComputeNormal(face));
+      
+    for(var i = 0; i < this.Edges.Count; ++i)
+    {
+      var edge = this.Edges[i];
+      if(edge.Twin < i)
+        continue;
+        
+      this.UniqueEdges.Add(edge);
+    }
+  }
+  
+  function ComputeNormal(face : QFace) : Real3
+  {
+    // Use Newell's method to compute the face normal.
+    var center = Real3();
+    var normal = Real3();
+    if(face.Edges.Count == 0)
+      return Real3();
+
+    var prevEdge = this.Edges[face.Edges[face.Edges.LastIndex]];
+    var count = 0;
+    for(var i = 0; i < face.Edges.Count; ++i)
+    {
+      var edgeIndex = face.Edges[i];
+      var currEdge = this.Edges[edgeIndex];
+      var p0 = this.Vertices[prevEdge.Vertex];
+      var p1 = this.Vertices[currEdge.Vertex];
+      var diff = p0 - p1;
+
+      normal.X += (p0.Y - p1.Y) * (p0.Z + p1.Z);
+      normal.Y += (p0.Z - p1.Z) * (p0.X + p1.X);
+      normal.Z += (p0.X - p1.X) * (p0.Y + p1.Y);
+      center += p1;
+      ++count;
+      prevEdge = currEdge;
+    }
+
+    normal = Math.Normalize(normal);
+    return normal;
+  }
+}

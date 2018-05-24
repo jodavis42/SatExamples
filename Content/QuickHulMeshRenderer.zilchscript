@@ -1,0 +1,208 @@
+
+
+class QuickHullMeshRenderer : ZilchComponent
+{
+  [Dependency] var Model : Model;
+  
+  [Property][ShaderInput] var RenderEdges : Boolean = false;
+  [Property][ShaderInput] var RenderFilled : Boolean = true;
+  [Property][ShaderInput] var RenderNormals : Boolean = false;
+  
+  [Property][ShaderInput] var NormalBaseSize : Real = 0.0025;
+  [Property][ShaderInput] var NormalLength : Real = 0.1;
+  
+  [Property] var ApplyTransform : Boolean = false;
+  [Property] var FindUsedVertices : Boolean = false;
+  
+  var Vertices = Array[Real3]();
+  var Edges = Array[QEdge]();
+  var Faces = Array[QFace]();
+  
+  var Mesh : Mesh = Mesh.CreateRuntime();
+  
+  var QuickHull : QuickHull3D = QuickHull3D();
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(init, Events.AllObjectsInitialized, this.OnAllObjectsInitialized);
+  }
+
+  function OnAllObjectsInitialized(event : CogInitializerEvent)
+  {
+    
+  }
+  
+  function Run()
+  {
+    var vertices = this.GetVertices();
+    foreach(var vertex in vertices)
+      this.QuickHull.Add(vertex);
+    this.QuickHull.Build();
+    this.CacheMesh();
+    this.UpdateMesh();
+  }
+  
+  [Extension(typeid(Real4x4))]
+  function SetIdentity()
+  {
+    for(var y = 0; y < 4; ++y)
+    {
+      for(var x = 0; x < 4; ++x)
+      {
+        if(x == y)
+          this[y, x] = 1;
+        else
+          this[y, x] = 0;
+      }
+    }
+  }
+  function GetVertices() : Array[Real3]
+  {
+    var output = Array[Real3]();
+    
+    var parentInverse = Real4x4();
+    parentInverse.SetIdentity();
+    if(!this.ApplyTransform)
+      parentInverse = Math.Invert(this.Owner.Transform.WorldMatrix);
+    
+    this.GetVertices(this.Owner, output, parentInverse);
+    return output;
+  }
+  
+  function GetVertices(cog : Cog, output : Array[Real3], parentInverse : Real4x4)
+  {
+    if(this.IsCogValid(cog))
+    {
+      var mesh = cog.Model.Mesh;
+      var worldMatrix = Math.Multiply(parentInverse, cog.Transform.WorldMatrix);
+      this.GetVertices(mesh, worldMatrix, output);
+    }
+    
+    foreach(var child in cog.Children)
+    {
+      this.GetVertices(child, output, parentInverse);
+    }
+  }
+  
+  function IsCogValid(cog : Cog) : Boolean
+  {
+    if(cog.Model == null)
+      return false;
+    //if(cog.SkipMeshCollection != null)
+    //  return false;
+    return true;
+  }
+  function GetVertices(mesh : Mesh, transform : Real4x4, output : Array[Real3])
+  {
+    if(this.FindUsedVertices)
+      this.GetUsedVertices(mesh, transform, output);
+    else
+      this.GetAllVertices(mesh, transform, output);
+  }
+  
+  function GetAllVertices(mesh : Mesh, transform : Real4x4, output : Array[Real3])
+  {
+    for(var i = 0; i < mesh.Vertices.VertexCount; ++i)
+    {
+      var pos = mesh.Vertices.GetVertexData(i, VertexSemantic.Position).XYZ;
+      pos = Math.MultiplyPoint(transform, pos);
+      output.Add(pos.XYZ);
+    }
+  }
+  
+  function GetUsedVertices(mesh : Mesh, transform : Real4x4, output : Array[Real3])
+  {
+    var map = HashMap[Integer, Integer]();
+    var points = Array[Real3]();
+    
+    for(var i = 0; i < mesh.Indices.Count; ++i)
+    {
+      var index = mesh.Indices[i];
+      if(map.Contains(index))
+        continue;
+      map[index] = index;
+      points.Add(mesh.Vertices.GetVertexData(index, VertexSemantic.Position).XYZ);
+    }
+    
+    foreach(var point in points)
+    {
+      var worldPoint = Math.MultiplyPoint(transform, point);
+      output.Add(worldPoint);
+    }
+  }
+  
+  function CacheMesh()
+  {
+    this.Vertices.Clear();
+    this.Edges.Clear();
+    this.Faces.Clear();
+    
+    var mesh = this.QuickHull.Mesh;
+    
+    var vertices = mesh.Vertices;
+    var edges = mesh.Edges;
+    var faces = mesh.Faces;
+    
+    for(var i = 0; i < vertices.Count; ++i)
+      this.Vertices.Add(vertices[i]);
+    for(var i = 0; i < edges.Count; ++i)
+    {
+      var edge = edges[i];
+      this.Edges.Add(QEdge() {Vertex = edge.VertexIndex, Twin = edge.TwinIndex, Face = edge.FaceIndex});
+    }
+    for(var i = 0; i < faces.Count; ++i)
+    {
+      var face = faces[i];
+      var qFace = QFace();
+      for(var eI = 0; eI < face.Edges.Count; ++eI)
+      {
+        qFace.Edges.Add(face.Edges[eI]);
+      }
+      this.Faces.Add(qFace);
+    }
+  }
+  
+  function UpdateMesh()
+  {
+    // Reset the mesh
+    this.Mesh = Mesh.CreateRuntime();
+    this.Mesh.Indices.Clear();
+    this.Mesh.Vertices.ClearData();
+    this.Mesh.Vertices.ClearAttributes();
+    
+    // Setup the mesh attributes
+    this.Mesh.Vertices.AddAttribute(VertexSemantic.Position, VertexElementType.Real, 3);
+    this.Mesh.Vertices.AddAttribute(VertexSemantic.Normal, VertexElementType.Real, 3);
+    
+    // Add each vertex, keeping track of the aabb along the way
+    var aabb = Aabb();
+    foreach(var vertex in this.Vertices)
+    {
+      this.Mesh.Vertices.AddReal(vertex);
+      this.Mesh.Vertices.AddReal(Real3.ZAxis);
+    }
+    
+    // Add each sub-triangle for each face
+    foreach(var face in this.Faces)
+    {
+      for(var i = 2; i < face.Edges.Count; ++i)
+      {
+        var e0 = this.Edges[face.Edges[0]];
+        var e1 = this.Edges[face.Edges[i - 1]];
+        var e2 = this.Edges[face.Edges[i]];
+        
+        this.Mesh.Indices {e0.Vertex, e1.Vertex, e2.Vertex};
+      }
+    }
+    
+    // Upload the mesh and make it visible
+    this.Mesh.Upload();
+    this.Model.Visible = true;
+    this.Model.Mesh = this.Mesh;
+    // Temporarily turn off view culling since the aabb is incorrect
+    this.Model.ViewCulling = false;
+    //this.Model.OverrideBoundingBox = true;
+    //this.Model.LocalAabbCenter = aabb.Center;
+    //this.Model.LocalAabbHalfExtents = aabb.HalfExtents;
+  }
+}
