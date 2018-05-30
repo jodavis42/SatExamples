@@ -1,6 +1,7 @@
 struct SolidWireFrameGeoInput
 {
   [Input] var ViewPosition : Real3;
+  [Input] var Aux0 : Real4;
   [Input] var PerspectivePosition : Real4;
 }
 
@@ -8,6 +9,7 @@ struct SolidWireFrameGeoOutput
 {
   [Output] var Distance : Real3;
   [Output] var ViewNormal : Real3;
+  [Output] var Active : Real3;
 }
 
 [Geometry(maxVertices : 3)]
@@ -33,16 +35,21 @@ struct SolidWireFrameGeo
     // Compute the height for each triangle as (2 * area) / base
     var heights = Real3(doubleArea) / baseLengths;
     
+    var activeEdges = input[0].Aux0.XYZ;
+    
     // For each vertex, output the number of pixels away it is from the opposite edge
     var outV = SolidWireFrameGeoOutput();
     outV.Distance = Real3(heights[0], 0, 0);
     outV.ViewNormal = viewNormal;
+    outV.Active = activeEdges;
     output.Append(outV, 0);
     
     outV.Distance = Real3(0, heights[1], 0);
+    outV.Active = activeEdges;
     output.Append(outV, 1);
     
     outV.Distance = Real3(0, 0, heights[2]);
+    outV.Active = activeEdges;
     output.Append(outV, 2);
   }
 }

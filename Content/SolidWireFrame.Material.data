@@ -37,4 +37,8 @@ Material
 	SolidWireFrameGeo 
 	{
 	}
+	SolidWireFrameVertex 
+	{
+		var Aux0 = Real4{0, 0, 0, 0}
+	}
 }

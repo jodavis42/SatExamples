@@ -1,0 +1,270 @@
+class SatFace
+{
+  var FaceNormal : Real3;
+  var FacePoint : Real3;
+  
+  function Compute(poly : PolyedronShape, faceIndex : Integer)
+  {
+    var mesh = poly.Mesh;
+    
+    var face = mesh.Faces[faceIndex];
+    var faceNormal = mesh.FaceNormals[faceIndex];
+    var edgeIndex = face.Edges[0];
+    var edge = mesh.Edges[edgeIndex];
+    var vertex = mesh.Vertices[edge.Vertex];
+    
+    this.FaceNormal = faceNormal;
+    this.FacePoint = vertex;
+  }
+  
+  function TransformToWorld(poly : PolyedronShape)
+  {
+    var transform = poly.Owner.Transform;
+    this.FacePoint = transform.TransformPoint(this.FacePoint);
+    this.FaceNormal = transform.TransformNormal(this.FaceNormal);
+  }
+  
+  function ComputeWorld(poly : PolyedronShape, faceIndex : Integer)
+  {
+    this.Compute(poly, faceIndex);
+    this.TransformToWorld(poly);
+  }
+}
+
+class SatEdge
+{
+  var Vertex0 : Real3;
+  var Vertex1 : Real3;
+  var FaceNormal0 : Real3;
+  var FaceNormal1 : Real3;
+  
+  function Compute(poly : PolyedronShape, edgeIndex : Integer)
+  {
+    var mesh = poly.Mesh;
+    var edge = mesh.Edges[edgeIndex];
+    var twin = mesh.Edges[edge.Twin];
+    
+    this.Vertex0 = mesh.Vertices[edge.Vertex];
+    this.Vertex1 = mesh.Vertices[twin.Vertex];
+    
+    this.FaceNormal0 = mesh.FaceNormals[edge.Face];
+    this.FaceNormal1 = mesh.FaceNormals[twin.Face];
+  }
+  
+  function TransformToWorld(poly : PolyedronShape)
+  {
+    var transform = poly.Owner.Transform;
+    this.Vertex0 = transform.TransformPoint(this.Vertex0);
+    this.Vertex1 = transform.TransformPoint(this.Vertex1);
+    this.FaceNormal0 = transform.TransformNormal(this.FaceNormal0);
+    this.FaceNormal1 = transform.TransformNormal(this.FaceNormal1);
+  }
+  
+  function ComputeWorld(poly : PolyedronShape, edgeIndex : Integer)
+  {
+    this.Compute(poly, edgeIndex);
+    this.TransformToWorld(poly);
+  }
+}
+
+class SatFaceLogInfo
+{
+  var Sat : SatTest = null;
+  var TestIndex : Integer = 0;
+  
+  var Face : SatFace = null;
+  var Separation : Real = 0;
+  var Poly : PolyedronShape;
+  var FaceIndex : Integer;
+}
+
+class SatEdgeLogInfo
+{
+  var Sat : SatTest = null;
+  var TestIndex : Integer = 0;
+  
+  var Edge0 : SatEdge = null;
+  var Edge1 : SatEdge = null;
+  var IsMinkowski : Boolean = false;
+  var Separation : Real = 0;
+}
+
+class SatTest
+{
+  var EarlyOut : Boolean = true;
+  var FaceLogCallback : delegate(logInfo : SatFaceLogInfo) = null;
+  var EdgeLogCallback : delegate(drawInfo : SatEdgeLogInfo) = null;
+  
+  var EdgesTested : Integer = 0;
+  var FacesTested : Integer = 0;
+  
+  function Test(poly0 : PolyedronShape, poly1 : PolyedronShape) : Boolean
+  {
+    this.EdgesTested = 0;
+    this.FacesTested = 0;
+    
+    // Test all of the faces on polygon 0
+    var separation0 = this.GetFaceSeparation(poly0, poly1);
+    if(separation0 > 0 && this.EarlyOut)
+      return false;
+    
+    // Test all of the faces on polygon 1
+    var separation1 = this.GetFaceSeparation(poly1, poly0);
+    if(separation1 > 0 && this.EarlyOut)
+      return false;
+    
+    // Test all of the edge cross terms
+    var edgeSeparation = this.GetEdgeSeparation(poly0, poly1);
+    if(edgeSeparation > 0 && this.EarlyOut)
+      return false;
+    
+    var separating = (separation0 > 0) || (separation1 > 0) || (edgeSeparation > 0);
+    return !separating;
+  }
+
+  function GetFaceSeparation(primaryPoly : PolyedronShape, otherPoly : PolyedronShape) : Real
+  {
+    var mesh = primaryPoly.Mesh;
+    
+    // Find the max separation on all faces
+    var maxSeparation = -Real.PositiveMax;
+    for(var i = 0; i < mesh.Faces.Count; ++i)
+    {
+      // Compute the world face plane infor
+      var face = SatFace();
+      face.ComputeWorld(primaryPoly, i);
+      var worldNormal = face.FaceNormal;
+      
+      // Find the vertex on the other shape furthest in the opposite direction of the plane normal
+      var otherWorldVertex = otherPoly.Search(-worldNormal);
+      // Compute the signed distance of this point with respect to the face plane
+      var separation = Math.Dot(worldNormal, otherWorldVertex - face.FacePoint);
+      
+      // Logging
+      if(this.FaceLogCallback != null)
+      {
+        var logInfo = SatFaceLogInfo();
+        logInfo.Sat = this;
+        logInfo.Face = face;
+        logInfo.Poly = primaryPoly;
+        logInfo.FaceIndex = i;
+        logInfo.Separation = separation;
+        logInfo.TestIndex = this.FacesTested;
+        this.FaceLogCallback(logInfo);
+      }
+      
+      // If we early out then and there's separation then return
+      if(separation > 0 && this.EarlyOut)
+        return separation;
+        
+      // Otherwise store the max separation (smallest penetration)
+      maxSeparation = Math.Max(maxSeparation, separation);
+      ++this.FacesTested;
+    }
+    return maxSeparation;
+  }
+  
+  function GetEdgeSeparation(poly0 : PolyedronShape, poly1 : PolyedronShape) : Real
+  {
+    var mesh0 = poly0.Mesh;
+    var mesh1 = poly1.Mesh;
+    var maxSeperation = -Real.PositiveMax;
+    
+    // Iterate over all edge v. edge combinations
+    for(var i = 0; i < poly0.Mesh.UniqueEdges.Count; ++i)
+    {
+      for(var j = 0; j < poly1.Mesh.UniqueEdges.Count; ++j)
+      {
+        var edge0Index = mesh0.Edges[mesh0.UniqueEdges[i].Twin].Twin;
+        var edge1Index = mesh1.Edges[mesh1.UniqueEdges[j].Twin].Twin;
+        
+        // Thest this edge for separation
+        var separation = this.TestEdgeSeparation(poly0, edge0Index, poly1, edge1Index);
+        // Early out if requested
+        if(separation > 0 && this.EarlyOut)
+          return separation;
+        
+        // Store the max separation (smallest penetration)
+        maxSeperation = Math.Max(maxSeperation, separation);
+        ++this.EdgesTested;
+      }
+    }
+    
+    return maxSeperation;
+  }
+  
+  function TestEdgeSeparation(poly0 : PolyedronShape, edge0Index : Integer, poly1 : PolyedronShape, edge1Index : Integer) : Real
+  {
+    // Compute the world-space edge information
+    var edge0Info = SatEdge();
+    var edge1Info = SatEdge();
+    edge0Info.ComputeWorld(poly0, edge0Index);
+    edge1Info.ComputeWorld(poly1, edge1Index);
+    
+    var worldPos0 = poly0.Owner.Transform.WorldTranslation;
+    var normal0A = edge0Info.FaceNormal0;
+    var normal0B = edge0Info.FaceNormal1;
+    var normal1A = edge1Info.FaceNormal0;
+    var normal1B = edge1Info.FaceNormal1;
+    
+    var p0A = edge0Info.Vertex0;
+    var p0B = edge0Info.Vertex1;
+    var p1A = edge1Info.Vertex0;
+    var p1B = edge1Info.Vertex1;
+    
+    var bxa = -(p0B - p0A);
+    var dxc = -(p1B - p1A);
+    
+    // Test if the great arcs of these edges on the gauss map intersect
+    var isMinkowski = this.TestMinkowskiFace(normal0A, normal0B, -bxa, -normal1A, -normal1B, -dxc);
+    
+    // If this edge needs to be tested then actually compute the separation distance
+    var separation = -Real.PositiveMax;
+    if(isMinkowski)
+      separation = this.SeparationDistance(edge0Info, edge1Info, worldPos0);
+      
+    if(this.EdgeLogCallback != null)
+    {
+      var logInfo = SatEdgeLogInfo();
+      logInfo.Sat = this;
+      logInfo.TestIndex = this.EdgesTested;
+      logInfo.Edge0 = edge0Info;
+      logInfo.Edge1 = edge1Info;
+      logInfo.IsMinkowski = isMinkowski;
+      logInfo.Separation = separation;
+      this.EdgeLogCallback(logInfo);
+    }
+    
+    return separation;
+  }
+  
+  function TestMinkowskiFace(a : Real3, b : Real3, bxa : Real3, c : Real3, d : Real3, dxc : Real3) : Boolean
+  {
+    var cba = Math.Dot(c, bxa);
+    var dba = Math.Dot(d, bxa);
+    var adc = Math.Dot(a, dxc);
+    var bdc = Math.Dot(b, dxc);
+    
+    return cba * dba < 0 && adc * bdc < 0 && cba * bdc > 0;
+  }
+  
+  function SeparationDistance(edge0Info : SatEdge, edge1Info : SatEdge, worldPos0 : Real3) : Real
+  {
+    var p0A = edge0Info.Vertex0;
+    var p0B = edge0Info.Vertex1;
+    var p1A = edge1Info.Vertex0;
+    var p1B = edge1Info.Vertex1;
+    
+    var edgeDir0 = p0B - p0A;
+    var edgeDir1 = p1B - p1A;
+    
+    // Compute the edge normal (always make it point from obj0 out)
+    var normal = Math.Normalize(Math.Cross(edgeDir0, edgeDir1));
+    if(Math.Dot(normal, p0A - worldPos0) < 0)
+      normal = -normal;
+    
+    var distance = Math.Dot(normal, p1B - p0B);
+    
+    return distance;
+  }
+}

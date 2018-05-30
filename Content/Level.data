@@ -175,9 +175,9 @@ Level
 		var Name = "EditorCamera"
 		Transform 
 		{
-			var Translation = Real3{7.52316999, 8.34730625, -1.76454437}
+			var Translation = Real3{0.514352322, 5.48680067, 8.59227467}
 			var Scale = Real3{1, 1, 1}
-			var Rotation = Quaternion{-0.209385991, 0.737824321, 0.264179409, 0.584792256}
+			var Rotation = Quaternion{-0.0396537594, 0.153724119, 0.00617416063, 0.987298489}
 		}
 		CameraViewport 
 		{
@@ -234,10 +234,10 @@ Level
 		{
 			var ControlMode = ControlMode.Orbit
 			var Previous3DMode = ControlMode.Orbit
-			var LookDistance = 10
-			var VerticalAngle = 0.68765986
-			var HorizontalAngle = -1.80117989
-			var LookTarget = Real3{0, 2, 0}
+			var LookDistance = 9.04837704
+			var VerticalAngle = 0.0802846551
+			var HorizontalAngle = -0.308923066
+			var LookTarget = Real3{-2.22779059, 4.7611351, 0}
 			var MoveSensitivity = 1
 		}
 	}
@@ -315,134 +315,23 @@ Level
 			var Active = true
 			var AttenuationScale = 1
 		}
+		OrbitCamera 
+		{
+			var RotationSensitivity = 0.00999999978
+			var TranslationSensitivity = 0.100000001
+			var PanSensitivity = 3
+			var MinDistance = 1
+			var MaxDistance = 100
+			var Target = Real3{0, 0, 0}
+			var Radius = 5
+		}
 	}
 	Cog [ContextId:6]
-	{
-		var Name = "Cube"
-		Transform 
-		{
-			var Translation = Real3{0, 0, 0}
-			var Scale = Real3{20, 1, 20}
-			var Rotation = Quaternion{0, 0, 0, 1}
-		}
-		Model 
-		{
-			var Visible = true
-			var ViewCulling = true
-			var VisibilityEvents = true
-			var OverrideBoundingBox = false
-			var LocalAabbCenter = Real3{0, 0, 0}
-			var LocalAabbHalfExtents = Real3{1, 1, 1}
-			var GroupSortValue = 0
-			var Material = "583afb5e7bf75e18:ZeroMaterial"
-			var Mesh = "4de0354322b345ae:Cube"
-		}
-		BoxCollider 
-		{
-			var Ghost = false
-			var SendsEvents = true
-			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
-			var CollisionGroup = "4e740859314e5515:DefaultGroup"
-			var Offset = Real3{0, 0, 0}
-			var HalfSize = Real3{0.5, 0.5, 0.5}
-		}
-	}
-	Cog [ContextId:7]
-	{
-		var Name = "Polyhedron3"
-		Transform 
-		{
-			var Translation = Real3{3.18156242, 4.7611351, 0}
-			var Scale = Real3{1, 1, 1}
-			var Rotation = Quaternion{-0.369558543, 0, 0, 0.929207444}
-		}
-		Model 
-		{
-			var Visible = true
-			var ViewCulling = true
-			var VisibilityEvents = true
-			var OverrideBoundingBox = false
-			var LocalAabbCenter = Real3{0, 0, 0}
-			var LocalAabbHalfExtents = Real3{1, 1, 1}
-			var GroupSortValue = 0
-			var Material = "5a9acdd308c66f53:SolidWireFrame"
-			var Mesh = "57b24459d8122a05:Wedge"
-		}
-		RigidBody 
-		{
-			var Velocity = Real3{0, 0, 0}
-			var AngularVelocity = Real3{0, 0, 0}
-			var DynamicState = RigidBodyDynamicState.Kinematic
-			var AllowSleep = true
-			var Asleep = false
-			var RotationLocked = false
-			var Mode2D = Mode2DStates.InheritFromSpace
-		}
-		BoxCollider 
-		{
-			var Ghost = false
-			var SendsEvents = true
-			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
-			var CollisionGroup = "4e740859314e5515:DefaultGroup"
-			var Offset = Real3{0, 0, 0}
-			var HalfSize = Real3{0.5, 0.5, 0.5}
-		}
-		PolyedronShape 
-		{
-			var InputMesh = "4de0354322b345ae:Cube"
-		}
-	}
-	Cog [ContextId:8]
-	{
-		var Name = "Polyhedron1"
-		Transform 
-		{
-			var Translation = Real3{1.20645761, 4.7611351, 0}
-			var Scale = Real3{1, 1, 1}
-			var Rotation = Quaternion{-0.447322547, 0, 0, 0.894372761}
-		}
-		Model 
-		{
-			var Visible = true
-			var ViewCulling = true
-			var VisibilityEvents = true
-			var OverrideBoundingBox = false
-			var LocalAabbCenter = Real3{0, 0, 0}
-			var LocalAabbHalfExtents = Real3{1, 1, 1}
-			var GroupSortValue = 0
-			var Material = "5a9acdd308c66f53:SolidWireFrame"
-			var Mesh = "57b24459d8122a05:Wedge"
-		}
-		RigidBody 
-		{
-			var Velocity = Real3{0, 0, 0}
-			var AngularVelocity = Real3{0, 0, 0}
-			var DynamicState = RigidBodyDynamicState.Kinematic
-			var AllowSleep = true
-			var Asleep = false
-			var RotationLocked = false
-			var Mode2D = Mode2DStates.InheritFromSpace
-		}
-		BoxCollider 
-		{
-			var Ghost = false
-			var SendsEvents = true
-			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
-			var CollisionGroup = "4e740859314e5515:DefaultGroup"
-			var Offset = Real3{0, 0, 0}
-			var HalfSize = Real3{0.5, 0.5, 0.5}
-		}
-		PolyedronShape 
-		{
-			var InputMesh = "4de0354322b345ae:Cube"
-		}
-	}
-	Cog [ContextId:9]
 	{
 		var Name = "Sphere"
 		Transform 
 		{
-			var Translation = Real3{-2.22779059, 4.7611351, 0}
+			var Translation = Real3{-2.22779059, 6.23426485, 0}
 			var Scale = Real3{1, 1, 1}
 			var Rotation = Quaternion{0, 0, 0, 1}
 		}
@@ -479,6 +368,7 @@ Level
 		}
 		GaussMapVisualizer 
 		{
+			var Active = true
 			var TargetPath = CogPath
 			{
 				var Path = ":/Polyhedron1"
@@ -489,13 +379,214 @@ Level
 				var UpdatePathOnCogChange = true
 				var UpdateCogOnInitialize = true
 				var ResolvedNullErrorOccurred = false
-				var Cog = 8
+				var Cog = 7
 				var PathPreference0 = CogPathPreference.CogRelative
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
+			var IsCogB = false
 			var EdgeColor = Real4{0, 0, 1, 1}
 			var VertexColor = Real4{1, 0, 0, 1}
+		}
+	}
+	Cog [ContextId:8]
+	{
+		var Name = "Sphere"
+		Transform 
+		{
+			var Translation = Real3{-3.68158817, 6.23426485, 0}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{0, 0, 0, 1}
+		}
+		Model 
+		{
+			var Visible = true
+			var ViewCulling = true
+			var VisibilityEvents = true
+			var OverrideBoundingBox = false
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{1, 1, 1}
+			var GroupSortValue = 0
+			var Material = "583afb5e7bf75e18:ZeroMaterial"
+			var Mesh = "4de0354322b376ae:Sphere"
+		}
+		RigidBody 
+		{
+			var Velocity = Real3{0, 0, 0}
+			var AngularVelocity = Real3{0, 0, 0}
+			var DynamicState = RigidBodyDynamicState.Static
+			var AllowSleep = true
+			var Asleep = false
+			var RotationLocked = false
+			var Mode2D = Mode2DStates.InheritFromSpace
+		}
+		SphereCollider 
+		{
+			var Ghost = false
+			var SendsEvents = true
+			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
+			var CollisionGroup = "4e740859314e5515:DefaultGroup"
+			var Offset = Real3{0, 0, 0}
+			var Radius = 0.5
+		}
+		GaussMapVisualizer 
+		{
+			var Active = true
+			var TargetPath = CogPath
+			{
+				var Path = ":/Polyhedron2"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 9
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var IsCogB = false
+			var EdgeColor = Real4{0.589999914, 1, 0, 1}
+			var VertexColor = Real4{0, 0, 0, 1}
+		}
+	}
+	Cog [ContextId:9]
+	{
+		var Name = "Polyhedron2"
+		Transform 
+		{
+			var Translation = Real3{2.60544443, 4.92817974, -0.60554558}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{-0.632201612, -0.682260215, 0.00388955465, -0.367188126}
+		}
+		Model 
+		{
+			var Visible = true
+			var ViewCulling = false
+			var VisibilityEvents = true
+			var OverrideBoundingBox = false
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{1, 1, 1}
+			var GroupSortValue = 0
+			var Material = "5a9acdd308c66f53:SolidWireFrame"
+			var Mesh = "4de0354322b345ae:Cube"
+		}
+		QuickHullModel 
+		{
+		}
+		RigidBody 
+		{
+			var Velocity = Real3{0, 0, 0}
+			var AngularVelocity = Real3{0, 0, 0}
+			var DynamicState = RigidBodyDynamicState.Kinematic
+			var AllowSleep = true
+			var Asleep = false
+			var RotationLocked = false
+			var Mode2D = Mode2DStates.InheritFromSpace
+		}
+		BoxCollider 
+		{
+			var Ghost = false
+			var SendsEvents = true
+			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
+			var CollisionGroup = "4e740859314e5515:DefaultGroup"
+			var Offset = Real3{0, 0, 0}
+			var HalfSize = Real3{0.5, 0.5, 0.5}
+		}
+		PolyedronShape 
+		{
+			var InputMesh = "4de0354322b345ae:Cube"
+		}
+	}
+	Cog [ContextId:7]
+	{
+		var Name = "Polyhedron1"
+		Transform 
+		{
+			var Translation = Real3{1.20645761, 4.7611351, 0}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{-0.389462978, 0.831013501, 0.133530065, -0.374038696}
+		}
+		Model 
+		{
+			var Visible = true
+			var ViewCulling = false
+			var VisibilityEvents = true
+			var OverrideBoundingBox = false
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{1, 1, 1}
+			var GroupSortValue = 0
+			var Material = "5a9acdd308c66f53:SolidWireFrame"
+			var Mesh = "4de0354322b345ae:Cube"
+		}
+		QuickHullModel 
+		{
+		}
+		RigidBody 
+		{
+			var Velocity = Real3{0, 0, 0}
+			var AngularVelocity = Real3{0, 0, 0}
+			var DynamicState = RigidBodyDynamicState.Kinematic
+			var AllowSleep = true
+			var Asleep = false
+			var RotationLocked = false
+			var Mode2D = Mode2DStates.InheritFromSpace
+		}
+		BoxCollider 
+		{
+			var Ghost = false
+			var SendsEvents = true
+			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
+			var CollisionGroup = "4e740859314e5515:DefaultGroup"
+			var Offset = Real3{0, 0, 0}
+			var HalfSize = Real3{0.5, 0.5, 0.5}
+		}
+		PolyedronShape 
+		{
+			var InputMesh = "4de0354322b345ae:Cube"
+		}
+	}
+	Cog [ContextId:10]
+	{
+		var Name = "SatSphere"
+		Transform 
+		{
+			var Translation = Real3{-2.22779059, 4.7611351, 0}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{0, 0, 0, 1}
+		}
+		Model 
+		{
+			var Visible = true
+			var ViewCulling = true
+			var VisibilityEvents = true
+			var OverrideBoundingBox = false
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{1, 1, 1}
+			var GroupSortValue = 0
+			var Material = "5828b036bd65b5d8:OpaqueFlat"
+			var Mesh = "4de0354322b376ae:Sphere"
+		}
+		RigidBody 
+		{
+			var Velocity = Real3{0, 0, 0}
+			var AngularVelocity = Real3{0, 0, 0}
+			var DynamicState = RigidBodyDynamicState.Static
+			var AllowSleep = true
+			var Asleep = false
+			var RotationLocked = false
+			var Mode2D = Mode2DStates.InheritFromSpace
+		}
+		SphereCollider 
+		{
+			var Ghost = false
+			var SendsEvents = true
+			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
+			var CollisionGroup = "4e740859314e5515:DefaultGroup"
+			var Offset = Real3{0, 0, 0}
+			var Radius = 0.5
 		}
 		SatTester 
 		{
@@ -509,14 +600,14 @@ Level
 				var UpdatePathOnCogChange = true
 				var UpdateCogOnInitialize = true
 				var ResolvedNullErrorOccurred = false
-				var Cog = 8
+				var Cog = 7
 				var PathPreference0 = CogPathPreference.CogRelative
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
 			var Shape1Path = CogPath
 			{
-				var Path = ":/Polyhedron3"
+				var Path = ":/Polyhedron2"
 				var ErrorOnResolveToNull = false
 				var ErrorOnPathCantCompute = false
 				var ErrorOnDirectLinkFail = false
@@ -524,32 +615,48 @@ Level
 				var UpdatePathOnCogChange = true
 				var UpdateCogOnInitialize = true
 				var ResolvedNullErrorOccurred = false
-				var Cog = 7
+				var Cog = 9
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var EdgeTestIndex = 0
+			var MinkowskiDiffCogPath = CogPath
+			{
+				var Path = ":/MinkowskiDiff"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 11
 				var PathPreference0 = CogPathPreference.CogRelative
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
 		}
 	}
-	Cog [ContextId:10]
+	Cog [ContextId:11]
 	{
-		var Name = "Sphere"
+		var Name = "MinkowskiDiff"
 		Transform 
 		{
-			var Translation = Real3{-2.22779059, 4.7611351, 0}
+			var Translation = Real3{-2.22779059, 3.4414835, 0}
 			var Scale = Real3{1, 1, 1}
 			var Rotation = Quaternion{0, 0, 0, 1}
 		}
 		Model 
 		{
-			var Visible = true
+			var Visible = false
 			var ViewCulling = true
 			var VisibilityEvents = true
 			var OverrideBoundingBox = false
 			var LocalAabbCenter = Real3{0, 0, 0}
 			var LocalAabbHalfExtents = Real3{1, 1, 1}
 			var GroupSortValue = 0
-			var Material = "583afb5e7bf75e18:ZeroMaterial"
+			var Material = "5a9acdd308c66f53:SolidWireFrame"
 			var Mesh = "4de0354322b376ae:Sphere"
 		}
 		RigidBody 
@@ -571,11 +678,14 @@ Level
 			var Offset = Real3{0, 0, 0}
 			var Radius = 0.5
 		}
-		GaussMapVisualizer 
+		QuickHullModel 
 		{
-			var TargetPath = CogPath
+		}
+		MinkowskiDifferenceVisualizer 
+		{
+			var Shape0Path = CogPath
 			{
-				var Path = ":/Polyhedron3"
+				var Path = ":/Polyhedron1"
 				var ErrorOnResolveToNull = false
 				var ErrorOnPathCantCompute = false
 				var ErrorOnDirectLinkFail = false
@@ -588,8 +698,22 @@ Level
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
-			var EdgeColor = Real4{0.589999914, 1, 0, 1}
-			var VertexColor = Real4{0, 0, 0, 1}
+			var Shape1Path = CogPath
+			{
+				var Path = ":/Polyhedron2"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 9
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var DrawOrigin = true
 		}
 	}
 }

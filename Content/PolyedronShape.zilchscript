@@ -1,5 +1,6 @@
 class PolyedronShape : ZilchComponent
 {
+  [Dependency] var QuickHullModel : QuickHullModel;
   var InputMeshInternal : Mesh = Mesh.Cube;
   [Property] var InputMesh : Mesh
   {
@@ -26,45 +27,11 @@ class PolyedronShape : ZilchComponent
   
   function UpdateMesh()
   {
-    // Reset the mesh
-    var mesh = Mesh.CreateRuntime();
-    mesh.Indices.Clear();
-    mesh.Vertices.ClearData();
-    mesh.Vertices.ClearAttributes();
-    
-    // Setup the mesh attributes
-    mesh.Vertices.AddAttribute(VertexSemantic.Position, VertexElementType.Real, 3);
-    mesh.Vertices.AddAttribute(VertexSemantic.Normal, VertexElementType.Real, 3);
-    
-    // Add each vertex, keeping track of the aabb along the way
-    var aabb = Aabb();
-    foreach(var vertex in this.Mesh.Vertices)
-    {
-      mesh.Vertices.AddReal(vertex);
-      mesh.Vertices.AddReal(Real3.ZAxis);
-    }
-    
-    // Add each sub-triangle for each face
-    foreach(var face in this.Mesh.Faces)
-    {
-      for(var i = 2; i < face.Edges.Count; ++i)
-      {
-        var e0 = this.Mesh.Edges[face.Edges[0]];
-        var e1 = this.Mesh.Edges[face.Edges[i - 1]];
-        var e2 = this.Mesh.Edges[face.Edges[i]];
-        
-        mesh.Indices {e0.Vertex, e1.Vertex, e2.Vertex};
-      }
-    }
-    
-    // Upload the mesh and make it visible
-    mesh.Upload();
-    this.Owner.Model.Visible = true;
-    this.Owner.Model.Mesh = mesh;
-    // Temporarily turn off view culling since the aabb is incorrect
-    this.Owner.Model.ViewCulling = false;
-    //this.Model.OverrideBoundingBox = true;
-    //this.Model.LocalAabbCenter = aabb.Center;
-    //this.Model.LocalAabbHalfExtents = aabb.HalfExtents;
+    this.QuickHullModel.Update(this.Mesh);
+  }
+  
+  function Search(worldDir : Real3) : Real3
+  {
+    return this.Mesh.Search(worldDir, this.Owner.Transform);
   }
 }

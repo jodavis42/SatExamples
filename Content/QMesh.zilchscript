@@ -17,6 +17,11 @@ class QFace
   var Edges = Array[Integer]();
 }
 
+class QFaceInfo
+{
+  var Normal : Real3;
+  var Center : Real3;
+}
 
 class QMesh
 {
@@ -37,6 +42,11 @@ class QMesh
     if(!quickHull.Build())
       return;
     
+    this.Store(quickHull);
+  }
+  
+  function Store(quickHull : QuickHull3D)
+  {
     this.Vertices.Clear();
     this.Edges.Clear();
     this.Faces.Clear();
@@ -73,7 +83,7 @@ class QMesh
   function Cache()
   {
     foreach(var face in this.Faces)
-      this.FaceNormals.Add(this.ComputeNormal(face));
+      this.FaceNormals.Add(this.ComputeNormalAndCenter(face).Normal);
       
     for(var i = 0; i < this.Edges.Count; ++i)
     {
@@ -85,13 +95,12 @@ class QMesh
     }
   }
   
-  function ComputeNormal(face : QFace) : Real3
+  function ComputeNormalAndCenter(face : QFace) : QFaceInfo
   {
     // Use Newell's method to compute the face normal.
-    var center = Real3();
-    var normal = Real3();
+    var result = QFaceInfo();
     if(face.Edges.Count == 0)
-      return Real3();
+      return result;
 
     var prevEdge = this.Edges[face.Edges[face.Edges.LastIndex]];
     var count = 0;
@@ -103,15 +112,41 @@ class QMesh
       var p1 = this.Vertices[currEdge.Vertex];
       var diff = p0 - p1;
 
-      normal.X += (p0.Y - p1.Y) * (p0.Z + p1.Z);
-      normal.Y += (p0.Z - p1.Z) * (p0.X + p1.X);
-      normal.Z += (p0.X - p1.X) * (p0.Y + p1.Y);
-      center += p1;
+      result.Normal.X += (p0.Y - p1.Y) * (p0.Z + p1.Z);
+      result.Normal.Y += (p0.Z - p1.Z) * (p0.X + p1.X);
+      result.Normal.Z += (p0.X - p1.X) * (p0.Y + p1.Y);
+      result.Center += p1;
       ++count;
       prevEdge = currEdge;
     }
 
-    normal = Math.Normalize(normal);
-    return normal;
+    result.Normal = Math.Normalize(result.Normal);
+    result.Center /= count;
+    return result;
+  }
+  
+  // Find the point furthest in the given direction local-space direction
+  function Search(localDir : Real3) : Real3
+  {
+    var maxDistance = Real.NegativeMin;
+    var maxVertex = Real3();
+    foreach(var vertex in this.Vertices)
+    {
+      var distance = Math.Dot(vertex, localDir);
+      if(distance > maxDistance)
+      {
+        maxDistance = distance;
+        maxVertex = vertex;
+      }
+    }
+    return maxVertex;
+  }
+  
+  // Find the point furthest in the given direction world-space direction
+  function Search(worldDir : Real3, transform : Transform) : Real3
+  {
+    var localDir = transform.TransformNormalInverse(worldDir);
+    var localPoint = this.Search(localDir);
+    return transform.TransformPoint(localPoint);
   }
 }

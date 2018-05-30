@@ -8,6 +8,7 @@ struct SolidWireFramePixel
   
   // Inputs from the geometry shader
   [StageInput] var Distance : Real3;
+  [StageInput] var Active : Real3;
   //[StageInput] var EdgeDistances : Real3;
   
   // Inputs from the pixel shader
@@ -28,6 +29,7 @@ struct SolidWireFramePixel
   
   function Main()
   {
+    this.Distance /= this.Active.YZX;
     var index = this.GetIndex();
     var distance = this.Distance[index];
     

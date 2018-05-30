@@ -1,0 +1,73 @@
+class QuickHullModel : ZilchComponent
+{
+  [Dependency] var Model : Model;
+  
+  function Update(quickHullMesh : QMesh)
+  {
+    this.UpdatePolygonMesh(quickHullMesh);
+  }
+  
+  function UpdatePolygonMesh(quickHullMesh : QMesh)
+  {
+    // Reset the mesh
+    var mesh = Mesh.CreateRuntime();
+    mesh.Indices.Clear();
+    mesh.Vertices.ClearData();
+    mesh.Vertices.ClearAttributes();
+    
+    // Setup the mesh attributes
+    mesh.Vertices.AddAttribute(VertexSemantic.Position, VertexElementType.Real, 3);
+    mesh.Vertices.AddAttribute(VertexSemantic.Normal, VertexElementType.Real, 3);
+    mesh.Vertices.AddAttribute(VertexSemantic.Aux0, VertexElementType.Real, 3);
+    
+    // Add each vertex, keeping track of the aabb along the way
+    var aabb = Aabb();
+    
+    // Add each sub-triangle for each face
+    foreach(var face in quickHullMesh.Faces)
+    {
+      for(var i = 2; i < face.Edges.Count; ++i)
+      {
+        var e0 = quickHullMesh.Edges[face.Edges[0]];
+        var e1 = quickHullMesh.Edges[face.Edges[i - 1]];
+        var e2 = quickHullMesh.Edges[face.Edges[i]];
+        
+        var v0 = quickHullMesh.Vertices[e0.Vertex];
+        var v1 = quickHullMesh.Vertices[e1.Vertex];
+        var v2 = quickHullMesh.Vertices[e2.Vertex];
+        
+        // By default, the only active edge (for edge drawing) is the 'outer' edge of the fan.
+        var activeEdges = Real3(0, 1, 0);
+        // If this is the first triangle then draw the edge between v0 and v1
+        if(i == 2)
+          activeEdges[0] = 1;
+        // If this is the last triangle then draw edge between v(n - 1) and v0
+        if(i == face.Edges.Count - 1)
+          activeEdges[2] = 1;
+          
+        var vCount = mesh.Vertices.VertexCount;
+        mesh.Vertices.AddReal(v0);
+        mesh.Vertices.AddReal(Real3.ZAxis);
+        mesh.Vertices.AddReal(activeEdges);
+        mesh.Vertices.AddReal(v1);
+        mesh.Vertices.AddReal(Real3.ZAxis);
+        mesh.Vertices.AddReal(activeEdges);
+        mesh.Vertices.AddReal(v2);
+        mesh.Vertices.AddReal(Real3.ZAxis);
+        mesh.Vertices.AddReal(activeEdges);
+        
+        mesh.Indices {vCount, vCount + 1, vCount + 2};
+      }
+    }
+    
+    // Upload the mesh and make it visible
+    mesh.Upload();
+    this.Owner.Model.Visible = true;
+    this.Owner.Model.Mesh = mesh;
+    // Temporarily turn off view culling since the aabb is incorrect
+    this.Owner.Model.ViewCulling = false;
+    //this.Model.OverrideBoundingBox = true;
+    //this.Model.LocalAabbCenter = aabb.Center;
+    //this.Model.LocalAabbHalfExtents = aabb.HalfExtents;
+  }
+}

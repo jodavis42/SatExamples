@@ -1,0 +1,101 @@
+class MinkowskiDifferenceVisualizer : ZilchComponent
+{
+  [Dependency] var QuickHullModel : QuickHullModel;
+  
+  [Property] var Shape0Path = CogPath();
+  [Property] var Shape1Path = CogPath();
+  [Property] var DrawOrigin : Boolean = true;
+  
+  var Cog0 : Cog;
+  var Cog1 : Cog;
+  
+  function Initialize(init : CogInitializer)
+  {
+    Zero.Connect(init, Events.AllObjectsInitialized, this.OnAllObjectsInitialized);
+    Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+  }
+
+  function OnFrameUpdate(event : UpdateEvent)
+  {
+    if(this.Cog0 == null || this.Cog1 == null)
+    {
+      this.UpdateConnections(this.Shape0Path.Cog, this.Shape1Path.Cog);
+      this.UpdateMesh();
+    }
+      
+    if(!this.DrawOrigin)
+      return;
+      
+    var origin = Real3();
+    origin += this.Owner.Transform.WorldTranslation;
+    DebugDraw.Add(DebugSphere(origin, 0.05) {Color = Colors.White});
+  }
+
+  function OnAllObjectsInitialized(event : CogInitializerEvent)
+  {
+    this.UpdateConnections(null, null);
+    this.UpdateMesh();
+  }
+  
+  function UpdateConnections(oldShape0 : Cog, oldShape1 : Cog)
+  {
+    if(oldShape0 != null)
+      Zero.DisconnectAll(oldShape0, this);
+    if(oldShape1 != null)
+      Zero.DisconnectAll(oldShape1, this);
+    
+    this.Cog0 = this.Shape0Path.Cog;
+    this.Cog1 = this.Shape1Path.Cog;
+    if(this.Cog0 == null || this.Cog1 == null)
+      return;
+      
+    Zero.Connect(this.Cog0, Events.TransformUpdated, this.OnUpdateMesh);
+    Zero.Connect(this.Cog1, Events.TransformUpdated, this.OnUpdateMesh);
+  }
+
+  function OnUpdateMesh(event : ObjectEvent)
+  {
+    this.UpdateMesh();
+  }
+  
+  function UpdateMesh()
+  {
+    if(this.Cog0 == null || this.Cog1 == null)
+      return;
+    
+    // Collect the vertices from both objects
+    var points0 = Array[Real3]();
+    var points1 = Array[Real3]();
+    this.AddVertices(points0, this.Cog0);
+    this.AddVertices(points1, this.Cog1);
+    
+    // Build convex hull of A - B
+    var quickHull = QuickHull3D();
+    foreach(var point0 in points0)
+    {
+      foreach(var point1 in points1)
+      {
+        quickHull.Add(point0 - point1);
+      }
+    }
+    quickHull.Build();
+    
+    // Store the mesh from quick hull and then update the model
+    var quickHullMesh = QMesh();
+    quickHullMesh.Store(quickHull);
+    this.QuickHullModel.Update(quickHullMesh);
+  }
+  
+  function AddVertices(points : Array[Real3], cog : Cog)
+  {
+    var shape = cog.PolyedronShape;
+    if(shape == null)
+      return;
+      
+    var mesh = shape.Mesh;
+    var transform = cog.Transform;
+    
+    foreach(var vertex in mesh.Vertices)
+      points.Add(transform.TransformPoint(vertex));
+  }
+}

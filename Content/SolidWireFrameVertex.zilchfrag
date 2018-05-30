@@ -1,0 +1,9 @@
+[Vertex]
+struct SolidWireFrameVertex
+{
+  [Input][Output] var Aux0 : Real4;
+  
+  function Main()
+  {
+  }
+}

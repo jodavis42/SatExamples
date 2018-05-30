@@ -1,8 +1,8 @@
-
-
 class GaussMapVisualizer : ZilchComponent
 {
+  [Property] var Active : Boolean = true;
   [Property] var TargetPath : CogPath = CogPath();
+  [Property] var IsCogB : Boolean = false;
   
   [Property] var EdgeColor : Real4 = Colors.Blue;
   [Property] var VertexColor : Real4 = Colors.Red;
@@ -89,6 +89,7 @@ class GaussMapVisualizer : ZilchComponent
   
   function OnLogicUpdate(event : UpdateEvent)
   {
-    this.Draw();
+    if(this.Active)
+      this.Draw();
   }
 }

@@ -1,0 +1,9 @@
+[Version:1]
+TextContent 
+{
+	ZilchFragmentBuilder 
+	{
+		var Name = "SolidWireFrameVertex"
+		var ResourceId = 0x5b35836c97e0e361
+	}
+}
