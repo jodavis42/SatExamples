@@ -1,0 +1,16 @@
+[Version:1]
+TextContent 
+{
+	ZilchScriptBuilder 
+	{
+		var Name = "MinkowskiDifferenceFeatureVisualizer"
+		var ResourceId = 0x5b30534f771a39d5
+	}
+	ContentTags 
+	{
+		var Tags = Array
+		{
+			"ZilchScript"
+		}
+	}
+}

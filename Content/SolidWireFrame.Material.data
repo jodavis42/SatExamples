@@ -33,6 +33,8 @@ Material
 	{
 		var Filled = true
 		var Pixels = 3
+		var TargetFaceIndex = -1
+		var TargetFaceColor = Real4{1, 0, 0, 1}
 	}
 	SolidWireFrameGeo 
 	{
@@ -40,5 +42,6 @@ Material
 	SolidWireFrameVertex 
 	{
 		var Aux0 = Real4{0, 0, 0, 0}
+		var Aux1 = Real4{0, 0, 0, 0}
 	}
 }

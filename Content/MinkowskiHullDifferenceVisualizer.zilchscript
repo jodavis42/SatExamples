@@ -1,7 +1,8 @@
-class MinkowskiDifferenceVisualizer : ZilchComponent
+class MinkowskiHullDifferenceVisualizer : ZilchComponent
 {
   [Dependency] var QuickHullModel : QuickHullModel;
   
+  [Property] var Active : Boolean = true;
   [Property] var Shape0Path = CogPath();
   [Property] var Shape1Path = CogPath();
   [Property] var DrawOrigin : Boolean = true;
@@ -60,7 +61,7 @@ class MinkowskiDifferenceVisualizer : ZilchComponent
   
   function UpdateMesh()
   {
-    if(this.Cog0 == null || this.Cog1 == null)
+    if(!this.Active || this.Cog0 == null || this.Cog1 == null)
       return;
     
     // Collect the vertices from both objects

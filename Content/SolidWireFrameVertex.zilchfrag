@@ -2,8 +2,11 @@
 struct SolidWireFrameVertex
 {
   [Input][Output] var Aux0 : Real4;
+  [Input] var Aux1 : Real4;
+  [Output] var FaceIndex : Integer;
   
   function Main()
   {
+    this.FaceIndex = this.Aux1.X as Integer;
   }
 }

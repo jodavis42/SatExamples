@@ -175,7 +175,7 @@ Level
 		var Name = "EditorCamera"
 		Transform 
 		{
-			var Translation = Real3{0.514352322, 5.48680067, 8.59227467}
+			var Translation = Real3{1.2023145, 7.73814964, 8.18257904}
 			var Scale = Real3{1, 1, 1}
 			var Rotation = Quaternion{-0.0396537594, 0.153724119, 0.00617416063, 0.987298489}
 		}
@@ -237,7 +237,7 @@ Level
 			var LookDistance = 9.04837704
 			var VerticalAngle = 0.0802846551
 			var HorizontalAngle = -0.308923066
-			var LookTarget = Real3{-2.22779059, 4.7611351, 0}
+			var LookTarget = Real3{-1.53982842, 7.01248407, -0.409695506}
 			var MoveSensitivity = 1
 		}
 	}
@@ -499,6 +499,11 @@ Level
 		{
 			var InputMesh = "4de0354322b345ae:Cube"
 		}
+		TargetFaceOverride 
+		{
+			var TargetFaceIndex = -1
+			var TargetFaceColor = Real4{1, 0, 0, 1}
+		}
 	}
 	Cog [ContextId:7]
 	{
@@ -546,6 +551,11 @@ Level
 		PolyedronShape 
 		{
 			var InputMesh = "4de0354322b345ae:Cube"
+		}
+		TargetFaceOverride 
+		{
+			var TargetFaceIndex = -1
+			var TargetFaceColor = Real4{1, 0, 0, 1}
 		}
 	}
 	Cog [ContextId:10]
@@ -620,10 +630,9 @@ Level
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
-			var EdgeTestIndex = 0
 			var MinkowskiDiffCogPath = CogPath
 			{
-				var Path = ":/MinkowskiDiff"
+				var Path = ":/MinkowskiHull"
 				var ErrorOnResolveToNull = false
 				var ErrorOnPathCantCompute = false
 				var ErrorOnDirectLinkFail = false
@@ -636,14 +645,30 @@ Level
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
+			var MinkowskiDiff2CogPath = CogPath
+			{
+				var Path = ":/MinkowskiDiff"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 12
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var TargetTestIndex = 0
 		}
 	}
 	Cog [ContextId:11]
 	{
-		var Name = "MinkowskiDiff"
+		var Name = "MinkowskiHull"
 		Transform 
 		{
-			var Translation = Real3{-2.22779059, 3.4414835, 0}
+			var Translation = Real3{-8.70318794, 3.4414835, 0}
 			var Scale = Real3{1, 1, 1}
 			var Rotation = Quaternion{0, 0, 0, 1}
 		}
@@ -681,8 +706,93 @@ Level
 		QuickHullModel 
 		{
 		}
-		MinkowskiDifferenceVisualizer 
+		MinkowskiHullDifferenceVisualizer 
 		{
+			var Active = true
+			var Shape0Path = CogPath
+			{
+				var Path = ":/Polyhedron1"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 7
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var Shape1Path = CogPath
+			{
+				var Path = ":/Polyhedron2"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 9
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var DrawOrigin = true
+		}
+	}
+	Cog [ContextId:12]
+	{
+		var Name = "MinkowskiDiff"
+		Transform 
+		{
+			var Translation = Real3{-2.22779059, -0.503004551, 0}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{0, 0, 0, 1}
+		}
+		Model 
+		{
+			var Visible = false
+			var ViewCulling = true
+			var VisibilityEvents = true
+			var OverrideBoundingBox = false
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{1, 1, 1}
+			var GroupSortValue = 0
+			var Material = "5a9acdd308c66f53:SolidWireFrame"
+			var Mesh = "4de0354322b376ae:Sphere"
+		}
+		RigidBody 
+		{
+			var Velocity = Real3{0, 0, 0}
+			var AngularVelocity = Real3{0, 0, 0}
+			var DynamicState = RigidBodyDynamicState.Static
+			var AllowSleep = true
+			var Asleep = false
+			var RotationLocked = false
+			var Mode2D = Mode2DStates.InheritFromSpace
+		}
+		SphereCollider 
+		{
+			var Ghost = false
+			var SendsEvents = true
+			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
+			var CollisionGroup = "4e740859314e5515:DefaultGroup"
+			var Offset = Real3{0, 0, 0}
+			var Radius = 0.5
+		}
+		QuickHullModel 
+		{
+		}
+		TargetFaceOverride 
+		{
+			var TargetFaceIndex = -1
+			var TargetFaceColor = Real4{1, 0, 0, 1}
+		}
+		MinkowskiDifferenceFeatureVisualizer 
+		{
+			var Active = true
 			var Shape0Path = CogPath
 			{
 				var Path = ":/Polyhedron1"

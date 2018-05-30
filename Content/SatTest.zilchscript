@@ -202,21 +202,9 @@ class SatTest
     edge1Info.ComputeWorld(poly1, edge1Index);
     
     var worldPos0 = poly0.Owner.Transform.WorldTranslation;
-    var normal0A = edge0Info.FaceNormal0;
-    var normal0B = edge0Info.FaceNormal1;
-    var normal1A = edge1Info.FaceNormal0;
-    var normal1B = edge1Info.FaceNormal1;
-    
-    var p0A = edge0Info.Vertex0;
-    var p0B = edge0Info.Vertex1;
-    var p1A = edge1Info.Vertex0;
-    var p1B = edge1Info.Vertex1;
-    
-    var bxa = -(p0B - p0A);
-    var dxc = -(p1B - p1A);
     
     // Test if the great arcs of these edges on the gauss map intersect
-    var isMinkowski = this.TestMinkowskiFace(normal0A, normal0B, -bxa, -normal1A, -normal1B, -dxc);
+    var isMinkowski = this.TestMinkowskiFace(edge0Info, edge1Info);
     
     // If this edge needs to be tested then actually compute the separation distance
     var separation = -Real.PositiveMax;
@@ -236,6 +224,24 @@ class SatTest
     }
     
     return separation;
+  }
+  
+  function TestMinkowskiFace(edge0Info : SatEdge, edge1Info : SatEdge) : Boolean
+  {
+    var normal0A = edge0Info.FaceNormal0;
+    var normal0B = edge0Info.FaceNormal1;
+    var normal1A = edge1Info.FaceNormal0;
+    var normal1B = edge1Info.FaceNormal1;
+    
+    var p0A = edge0Info.Vertex0;
+    var p0B = edge0Info.Vertex1;
+    var p1A = edge1Info.Vertex0;
+    var p1B = edge1Info.Vertex1;
+    
+    var bxa = -(p0B - p0A);
+    var dxc = -(p1B - p1A);
+    
+    return this.TestMinkowskiFace(normal0A, normal0B, -bxa, -normal1A, -normal1B, -dxc);
   }
   
   function TestMinkowskiFace(a : Real3, b : Real3, bxa : Real3, c : Real3, d : Real3, dxc : Real3) : Boolean

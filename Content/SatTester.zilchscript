@@ -4,6 +4,7 @@ class SatTester : ZilchComponent
   [Property] var Shape1Path = CogPath();
   
   [Property] var MinkowskiDiffCogPath = CogPath();
+  [Property] var MinkowskiDiff2CogPath = CogPath();
   // What SAT axis to debug draw / print. This might be a face or an edge axis
   [Property] var TargetTestIndex : Integer = 0;
   
@@ -11,7 +12,10 @@ class SatTester : ZilchComponent
   [ShaderInput] var AlbedoValue : Real4 = Colors.DimGray;
   
   // What SAT axis we have currently run.
+  var TestedAxesA : Integer;
+  var TestedAxesB : Integer;
   var CurrentTestAxisIndex : Integer = 0;
+  var ValidAxisIndex : Integer = 0;
   
   function Initialize(init : CogInitializer)
   {
@@ -26,6 +30,11 @@ class SatTester : ZilchComponent
     if(event.Key == Keys.Equal || event.Key == Keys.Add)
       ++this.TargetTestIndex;
   }
+  
+  function UpdateMinkowskiAxis()
+  {
+    this.MinkowskiDiff2CogPath.TargetFaceOverride.TargetFaceIndex = this.ValidAxisIndex;
+  }
 
   function OnLogicUpdate(event : UpdateEvent)
   {
@@ -35,12 +44,20 @@ class SatTester : ZilchComponent
       return;
     
     var result = this.Run(poly0, poly1);
-    Console.WriteLine(result);
+    //Console.WriteLine(result);
   }
   
   function Run(poly0 : PolyedronShape, poly1 : PolyedronShape) : Boolean
   {
+    this.TestedAxesA = 0;
+    this.TestedAxesB = 0;
     this.CurrentTestAxisIndex = 0;
+    this.ValidAxisIndex = -1;
+    this.UpdateMinkowskiAxis();
+    this.ValidAxisIndex = 0;
+    
+    poly0.Owner.TargetFaceOverride.TargetFaceIndex = -1;
+    poly1.Owner.TargetFaceOverride.TargetFaceIndex = -1;
     
     var satTest = SatTest();
     satTest.EarlyOut = false;
@@ -53,6 +70,11 @@ class SatTester : ZilchComponent
   {
     if(this.CurrentTestAxisIndex == this.TargetTestIndex)
     {
+      var faceIndex = this.TestedAxesA;
+      if(logInfo.Poly.Owner != this.Shape0Path.Cog)
+        faceIndex = this.TestedAxesB;
+      
+      this.UpdateMinkowskiAxis();
       var satFace = logInfo.Face;
       var mesh = logInfo.Poly.Mesh;
       var face = mesh.Faces[logInfo.FaceIndex];
@@ -63,31 +85,23 @@ class SatTester : ZilchComponent
       if(logInfo.Separation > 0)
         color = Colors.Blue;
         
+      var faceOverride = logInfo.Poly.Owner.TargetFaceOverride;
+      faceOverride.TargetFaceIndex = faceIndex;
+      faceOverride.TargetFaceColor = color;
+        
       // Draw the face normal at the center of the face
       var faceInfo = mesh.ComputeNormalAndCenter(face);
       var worldNormal = transform.TransformNormal(faceInfo.Normal);
       var worldCenter = transform.TransformPoint(faceInfo.Center);
-      DebugDraw.Add(DebugLine(worldCenter, worldCenter + worldNormal) {HeadSize = 0.05});
-      
-      // Draw each triangle in the face
-      for(var i = 2; i < face.Edges.Count; ++i)
-      {
-        var e0 = mesh.Edges[face.Edges[0]];
-        var e1 = mesh.Edges[face.Edges[i - 1]];
-        var e2 = mesh.Edges[face.Edges[i]];
-        
-        var v0 = mesh.Vertices[e0.Vertex];
-        var v1 = mesh.Vertices[e1.Vertex];
-        var v2 = mesh.Vertices[e2.Vertex];
-        
-        v0 = transform.TransformPoint(v0);
-        v1 = transform.TransformPoint(v1);
-        v2 = transform.TransformPoint(v2);
-        
-        DebugDraw.Add(DebugTriangle(v0, v1, v2) {Filled = true, Color = color});
-      }
+      DebugDraw.Add(DebugLine(worldCenter, worldCenter + worldNormal) {HeadSize = 0.05, Color = color});
     }
     
+    if(logInfo.Poly.Owner == this.Shape0Path.Cog)
+      ++this.TestedAxesA;
+    else
+      ++this.TestedAxesB;
+      
+    ++this.ValidAxisIndex;
     ++this.CurrentTestAxisIndex;
   }
   
@@ -96,7 +110,10 @@ class SatTester : ZilchComponent
     if(this.CurrentTestAxisIndex == this.TargetTestIndex)
     {
       if(logInfo.IsMinkowski)
+      {
         this.AlbedoValue = Colors.White;
+        this.UpdateMinkowskiAxis();
+      }
       else
         this.AlbedoValue = Colors.DimGray;
         
@@ -116,16 +133,10 @@ class SatTester : ZilchComponent
       this.DrawVertex(-edge1.FaceNormal0, Colors.Blue);
       this.DrawVertex(-edge1.FaceNormal1, Colors.Blue);
       this.DrawArc(-edge1.FaceNormal0, -edge1.FaceNormal1, radius, Colors.Blue);
-      
-      // Draw the face these edges make on the minkowski difference
-      var center = this.MinkowskiDiffCogPath.Transform.WorldTranslation;
-      var p00 = edge0.Vertex0 - edge1.Vertex0 + center;
-      var p01 = edge0.Vertex0 - edge1.Vertex1 + center;
-      var p10 = edge0.Vertex1 - edge1.Vertex0 + center;
-      var p11 = edge0.Vertex1 - edge1.Vertex1 + center;
-      
-      DebugDraw.Add(DebugTriangle(p00, p01, p11) {Filled = true, Color = Colors.Red});
-      DebugDraw.Add(DebugTriangle(p00, p10, p11) {Filled = true, Color = Colors.Red});
+    }
+    if(logInfo.IsMinkowski)
+    {
+      ++this.ValidAxisIndex;
     }
     
     ++this.CurrentTestAxisIndex;
@@ -133,6 +144,8 @@ class SatTester : ZilchComponent
   
   function DrawArc(p0 : Real3, p1 : Real3, radius : Real, edgeColor : Real4)
   {
+    p0 = Math.Normalize(p0);
+    p1 = Math.Normalize(p1);
     var center = this.Owner.Transform.WorldTranslation;
     
     var mid = Math.Slerp(p0, p1, 0.5);
@@ -144,6 +157,7 @@ class SatTester : ZilchComponent
   
   function DrawVertex(vertex : Real3, vertexColor : Real4)
   {
+    vertex = Math.Normalize(vertex);
     var center = this.Owner.Transform.WorldTranslation;
     var radius = 0.51;
     var point = center + radius * vertex;

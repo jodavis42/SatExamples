@@ -1,0 +1,272 @@
+class MinkowskiDifferenceFeatureVisualizer : ZilchComponent
+{
+  [Dependency] var QuickHullModel : QuickHullModel;
+  
+  [Property] var Active : Boolean = true;
+  [Property] var Shape0Path = CogPath();
+  [Property] var Shape1Path = CogPath();
+  [Property] var DrawOrigin : Boolean = true;
+  
+  [Dependency] var Model : Model;
+  var Mesh : Mesh;
+  var Cog0 : Cog;
+  var Cog1 : Cog;
+  var FaceIndex : Real = 0;
+  
+  function Initialize(init : CogInitializer)
+  {
+    var mesh = Mesh.CreateRuntime();
+    this.Mesh = mesh;
+    
+    Zero.Connect(init, Events.AllObjectsInitialized, this.OnAllObjectsInitialized);
+    Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+  }
+
+  function OnFrameUpdate(event : UpdateEvent)
+  {
+    if(this.Cog0 == null || this.Cog1 == null)
+    {
+      this.UpdateConnections(this.Shape0Path.Cog, this.Shape1Path.Cog);
+      this.UpdateMesh();
+    }
+      
+    if(!this.DrawOrigin)
+      return;
+    
+    var origin = Real3();
+    origin += this.Owner.Transform.WorldTranslation;
+    DebugDraw.Add(DebugSphere(origin, 0.05) {Color = Colors.White});
+  }
+
+  function OnAllObjectsInitialized(event : CogInitializerEvent)
+  {
+    this.UpdateConnections(null, null);
+    this.UpdateMesh();
+  }
+  
+  function UpdateConnections(oldShape0 : Cog, oldShape1 : Cog)
+  {
+    if(oldShape0 != null)
+      Zero.DisconnectAll(oldShape0, this);
+    if(oldShape1 != null)
+      Zero.DisconnectAll(oldShape1, this);
+    
+    this.Cog0 = this.Shape0Path.Cog;
+    this.Cog1 = this.Shape1Path.Cog;
+    if(this.Cog0 == null || this.Cog1 == null)
+      return;
+      
+    Zero.Connect(this.Cog0, Events.TransformUpdated, this.OnUpdateMesh);
+    Zero.Connect(this.Cog1, Events.TransformUpdated, this.OnUpdateMesh);
+  }
+
+  function OnUpdateMesh(event : ObjectEvent)
+  {
+    this.UpdateMesh();
+  }
+  
+  function UpdateMesh()
+  {
+    if(!this.Active)
+      return;
+      
+    this.FaceIndex = 0;
+    
+    // Reset the mesh
+    var mesh = this.Mesh;
+    mesh.Indices.Clear();
+    mesh.Vertices.ClearData();
+    mesh.Vertices.ClearAttributes();
+    
+    // Setup the mesh attributes
+    mesh.Vertices.AddAttribute(VertexSemantic.Position, VertexElementType.Real, 3);
+    mesh.Vertices.AddAttribute(VertexSemantic.Normal, VertexElementType.Real, 3);
+    mesh.Vertices.AddAttribute(VertexSemantic.Aux0, VertexElementType.Real, 3);
+    mesh.Vertices.AddAttribute(VertexSemantic.Aux1, VertexElementType.Real, 1);
+    
+    var poly0 = this.Cog0.PolyedronShape;
+    var poly1 = this.Cog1.PolyedronShape;
+    if(poly0 == null || poly1 == null)
+      return;
+      
+    this.DrawFaces(poly0, poly1, 1, -1);
+    this.DrawFaces(poly1, poly0, -1, 1);
+    this.DrawEdges(poly0, poly1);
+    
+    // Upload the mesh and make it visible
+    mesh.Upload();
+    this.Owner.Model.Visible = true;
+    this.Owner.Model.Mesh = mesh;
+    // Temporarily turn off view culling since the aabb is incorrect
+    this.Owner.Model.ViewCulling = false;
+  }
+  
+  function DrawFaces(primaryShape : PolyedronShape, otherShape : PolyedronShape, signA : Real, signB : Real)
+  {
+    var vertices = this.Mesh.Vertices;
+    
+    var transform = primaryShape.Owner.Transform;
+    var mesh = primaryShape.Mesh;
+    foreach(var face in primaryShape.Mesh.Faces)
+    {
+      var faceInfo = mesh.ComputeNormalAndCenter(face);
+      var worldNormal = transform.TransformNormal(faceInfo.Normal);
+      
+      var otherPoint = otherShape.Search(-worldNormal);
+      
+      // Draw each triangle in the face
+      for(var i = 2; i < face.Edges.Count; ++i)
+      {
+        var e0 = mesh.Edges[face.Edges[0]];
+        var e1 = mesh.Edges[face.Edges[i - 1]];
+        var e2 = mesh.Edges[face.Edges[i]];
+        
+        var v0 = mesh.Vertices[e0.Vertex];
+        var v1 = mesh.Vertices[e1.Vertex];
+        var v2 = mesh.Vertices[e2.Vertex];
+        
+        v0 = signA * transform.TransformPoint(v0) + signB * otherPoint;
+        v1 = signA * transform.TransformPoint(v1) + signB * otherPoint;
+        v2 = signA * transform.TransformPoint(v2) + signB * otherPoint;
+        
+        
+        // By default, the only active edge (for edge drawing) is the 'outer' edge of the fan.
+        var activeEdges = Real3(0, 1, 0);
+        // If this is the first triangle then draw the edge between v0 and v1
+        if(i == 2)
+          activeEdges[0] = 1;
+        // If this is the last triangle then draw edge between v(n - 1) and v0
+        if(i == face.Edges.Count - 1)
+          activeEdges[2] = 1;
+        
+        if(signA < 0)
+        {
+          var tV = v1;
+          v1 = v2;
+          v2 = tV;
+          
+          var tA = activeEdges[0];
+          activeEdges[0] = activeEdges[2];
+          activeEdges[2] = tA;
+        }
+        
+        var vCount = vertices.VertexCount;
+        vertices.AddReal(v0);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        vertices.AddReal(v1);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        vertices.AddReal(v2);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        this.Mesh.Indices {vCount, vCount + 1, vCount + 2};
+      }
+      ++this.FaceIndex;
+    }
+  }
+  
+  function GetWorldEdges(shape : PolyedronShape) : Array[SatEdge]
+  {
+    var mesh = shape.Mesh;
+    var edges = Array[SatEdge]();
+    for(var i = 0; i < mesh.UniqueEdges.Count; ++i)
+    {
+      var edgeIndex = mesh.Edges[mesh.UniqueEdges[i].Twin].Twin;
+      var edge = SatEdge();
+      edge.ComputeWorld(shape, edgeIndex);
+      edges.Add(edge);
+    }
+    return edges;
+  }
+  
+  function DrawEdges(shapeA : PolyedronShape, shapeB : PolyedronShape)
+  {
+    var meshA = shapeA.Mesh;
+    var meshB = shapeB.Mesh;
+    
+    var edgesA = this.GetWorldEdges(shapeA);
+    var edgesB = this.GetWorldEdges(shapeB);
+    
+    var vertices = this.Mesh.Vertices;
+    var minkowskiCenter = shapeA.Owner.Transform.WorldTranslation - shapeB.Owner.Transform.WorldTranslation;
+    
+    foreach(var edgeA in edgesA)
+    {
+      foreach(var edgeB in edgesB)
+      {
+        var sat = SatTest();
+        
+        // Skip faces that aren't on the hull
+        if(!sat.TestMinkowskiFace(edgeA, edgeB))
+          continue;
+        
+        var p00 = edgeA.Vertex0 - edgeB.Vertex0;
+        var p01 = edgeA.Vertex0 - edgeB.Vertex1;
+        var p10 = edgeA.Vertex1 - edgeB.Vertex0;
+        var p11 = edgeA.Vertex1 - edgeB.Vertex1;
+        
+        // Make sure the winding order is correct
+        var normal = Math.Cross(p11 - p00, p01 - p00);
+        if(Math.Dot(normal, p00 - minkowskiCenter) < 0)
+        {
+          var temp = p00;
+          p00 = p01;
+          p01 = temp;
+          
+          temp = p10;
+          p10 = p11;
+          p11 = temp;
+          normal *= -1;
+        }
+        
+        
+        // Deal with this later!
+        var activeEdges = Real3(0, 1, 0);
+        
+        var vCount = vertices.VertexCount;
+        vertices.AddReal(p00);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        vertices.AddReal(p11);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        vertices.AddReal(p01);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        this.Mesh.Indices {vCount, vCount + 1, vCount + 2};
+        
+        vCount = vertices.VertexCount;
+        vertices.AddReal(p00);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        vertices.AddReal(p10);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        
+        vertices.AddReal(p11);
+        vertices.AddReal(Real3.ZAxis);
+        vertices.AddReal(activeEdges);
+        vertices.AddReal(this.FaceIndex);
+        this.Mesh.Indices {vCount, vCount + 1, vCount + 2};
+        
+        ++this.FaceIndex;
+      }
+    }
+  }
+}

@@ -21,6 +21,12 @@ class QFaceInfo
 {
   var Normal : Real3;
   var Center : Real3;
+  
+  function Transform(transform : Transform)
+  {
+    this.Normal = transform.TransformNormal(this.Normal);
+    this.Center = transform.TransformPoint(this.Center);
+  }
 }
 
 class QMesh

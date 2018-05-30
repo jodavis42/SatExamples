@@ -1,0 +1,9 @@
+class TargetFaceOverride : ZilchComponent
+{
+  [ShaderInput][Property] var TargetFaceIndex : Integer = -1;
+  [ShaderInput][Property] var TargetFaceColor : Real4 = Colors.Red;
+  
+  function Initialize(init : CogInitializer)
+  {
+  }
+}

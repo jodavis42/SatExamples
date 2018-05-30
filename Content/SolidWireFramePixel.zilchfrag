@@ -16,6 +16,9 @@ struct SolidWireFramePixel
   [FragmentInput][Output] var Metallic : Real;
   [FragmentInput][Output] var Roughness : Real;
   [FragmentInput][Output] var Specular : Real;
+  [StageInput] var FaceIndex : Integer;
+  [PropertyInput] var TargetFaceIndex : Integer = -1;
+  [PropertyInput] var TargetFaceColor : Real4 = Colors.Red;
   
   function GetIndex() : Integer
   {
@@ -42,6 +45,11 @@ struct SolidWireFramePixel
       
     // Compute an interpolant for the colors
     var t = Math.SmoothStep(0, this.Pixels, distance);
+    
+    if(this.TargetFaceIndex == this.FaceIndex)
+    {
+      this.Albedo = this.TargetFaceColor.XYZ;
+    }
     
     // Interpolate all of the default values on core zero materials between black and their original value
     this.Albedo = Math.Lerp(Real3(), this.Albedo, t);
