@@ -8,6 +8,9 @@ class SatTester : ZilchComponent
   // What SAT axis to debug draw / print. This might be a face or an edge axis
   [Property] var TargetTestIndex : Integer = 0;
   
+  [Property] var DrawAllEdges : Boolean = true;
+  [Property] var EarlyOut : Boolean = false;
+  
   // Used to change the gauss map sphere's color based upon if the edges intersect
   [ShaderInput] var AlbedoValue : Real4 = Colors.DimGray;
   
@@ -55,12 +58,13 @@ class SatTester : ZilchComponent
     this.ValidAxisIndex = -1;
     this.UpdateMinkowskiAxis();
     this.ValidAxisIndex = 0;
+    this.AlbedoValue = Colors.DimGray;
     
     poly0.Owner.TargetFaceOverride.TargetFaceIndex = -1;
     poly1.Owner.TargetFaceOverride.TargetFaceIndex = -1;
     
     var satTest = SatTest();
-    satTest.EarlyOut = false;
+    satTest.EarlyOut = this.EarlyOut;
     satTest.EdgeLogCallback = this.EdgeLogCallback;
     satTest.FaceLogCallback = this.FaceLogCallback;
     return satTest.Test(poly0, poly1);
@@ -107,6 +111,9 @@ class SatTester : ZilchComponent
   
   function EdgeLogCallback(logInfo : SatEdgeLogInfo)
   {
+    if(!logInfo.IsMinkowski && this.DrawAllEdges == false)
+      return;
+      
     if(this.CurrentTestAxisIndex == this.TargetTestIndex)
     {
       if(logInfo.IsMinkowski)

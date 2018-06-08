@@ -661,6 +661,8 @@ Level
 				var PathPreference2 = CogPathPreference.Absolute
 			}
 			var TargetTestIndex = 0
+			var DrawAllEdges = true
+			var EarlyOut = false
 		}
 	}
 	Cog [ContextId:11]
