@@ -4,12 +4,12 @@ class SatTester : ZilchComponent
   [Property] var Shape1Path = CogPath();
   
   [Property] var MinkowskiDiffCogPath = CogPath();
-  [Property] var MinkowskiDiff2CogPath = CogPath();
   // What SAT axis to debug draw / print. This might be a face or an edge axis
   [Property] var TargetTestIndex : Integer = 0;
   
   [Property] var DrawAllEdges : Boolean = true;
   [Property] var EarlyOut : Boolean = false;
+  [Property] var DebugDrawEdgeFace : Boolean = false;
   
   // Used to change the gauss map sphere's color based upon if the edges intersect
   [ShaderInput] var AlbedoValue : Real4 = Colors.DimGray;
@@ -36,7 +36,9 @@ class SatTester : ZilchComponent
   
   function UpdateMinkowskiAxis()
   {
-    this.MinkowskiDiff2CogPath.TargetFaceOverride.TargetFaceIndex = this.ValidAxisIndex;
+    var targetFaceOverride = this.MinkowskiDiffCogPath.TargetFaceOverride;
+    if(targetFaceOverride != null)
+      targetFaceOverride.TargetFaceIndex = this.ValidAxisIndex;
   }
 
   function OnLogicUpdate(event : UpdateEvent)
@@ -47,7 +49,6 @@ class SatTester : ZilchComponent
       return;
     
     var result = this.Run(poly0, poly1);
-    //Console.WriteLine(result);
   }
   
   function Run(poly0 : PolyedronShape, poly1 : PolyedronShape) : Boolean
@@ -140,6 +141,18 @@ class SatTester : ZilchComponent
       this.DrawVertex(-edge1.FaceNormal0, Colors.Blue);
       this.DrawVertex(-edge1.FaceNormal1, Colors.Blue);
       this.DrawArc(-edge1.FaceNormal0, -edge1.FaceNormal1, radius, Colors.Blue);
+      
+      if(this.DebugDrawEdgeFace)
+      {
+        var p00 = edge0.Vertex0 - edge1.Vertex0;
+        var p01 = edge0.Vertex0 - edge1.Vertex1;
+        var p10 = edge0.Vertex1 - edge1.Vertex0;
+        var p11 = edge0.Vertex1 - edge1.Vertex1;
+        DebugDraw.Add(DebugLine(p00, p01) {OnTop = true});
+        DebugDraw.Add(DebugLine(p01, p11) {OnTop = true});
+        DebugDraw.Add(DebugLine(p11, p10) {OnTop = true});
+        DebugDraw.Add(DebugLine(p10, p00) {OnTop = true});
+      }
     }
     if(logInfo.IsMinkowski)
     {

@@ -4,16 +4,9 @@ DataContent
 	DataBuilder 
 	{
 		var Name = "MinkowskiDifference"
-		var ResourceId = 0x5b3586169e913758
+		var ResourceId = 0x5b74737f41515e79
 		var LoaderType = "Level"
 		var Version = 0
 		var ShowInEditor = true
-	}
-	ContentTags 
-	{
-		var Tags = Array
-		{
-			"Level"
-		}
 	}
 }

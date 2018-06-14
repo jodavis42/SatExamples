@@ -3,8 +3,8 @@ DataContent
 {
 	DataBuilder 
 	{
-		var Name = "Level"
-		var ResourceId = 0x576f215c0825c3a8
+		var Name = "CombinedGaussMaps"
+		var ResourceId = 0x5b746f0d75115548
 		var LoaderType = "Level"
 		var Version = 0
 		var ShowInEditor = true

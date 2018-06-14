@@ -1,0 +1,88 @@
+[Version:1]
+Cog 
+{
+	var Name = "Cone"
+	Transform 
+	{
+		var Translation = Real3{0, 0, 0}
+		var Scale = Real3{1, 1, 1}
+		var Rotation = Quaternion{0, 0, 0, 1}
+	}
+	Hierarchy 
+	{
+		Cog [Id:0x5b746e6cbf6b959c]
+		{
+			var Name = "pCone1RotationPivot"
+			Transform 
+			{
+				var Translation = Real3{0, 0, -0.5}
+				var Scale = Real3{1, 1, 1}
+				var Rotation = Quaternion{0, 0, 0, 1}
+			}
+			Hierarchy 
+			{
+				Cog [Id:0x5b746e6cbf6b95a1]
+				{
+					var Name = "pCone1RotationPivotInverse"
+					Transform 
+					{
+						var Translation = Real3{0, 0, 0.5}
+						var Scale = Real3{1, 1, 1}
+						var Rotation = Quaternion{0, 0, 0, 1}
+					}
+					Hierarchy 
+					{
+						Cog [Id:0x5b746e6cbf6b95a2]
+						{
+							var Name = "pCone1ScalingPivot"
+							Transform 
+							{
+								var Translation = Real3{0, 0, -0.5}
+								var Scale = Real3{1, 1, 1}
+								var Rotation = Quaternion{0, 0, 0, 1}
+							}
+							Hierarchy 
+							{
+								Cog [Id:0x5b746e6cbf6b95a4]
+								{
+									var Name = "pCone1ScalingPivotInverse"
+									Transform 
+									{
+										var Translation = Real3{0, 0, 0.5}
+										var Scale = Real3{1, 1, 1}
+										var Rotation = Quaternion{0, 0, 0, 1}
+									}
+									Hierarchy 
+									{
+										Cog [Id:0x5b746e6cbf6b95a5]
+										{
+											var Name = "pCone1"
+											Transform 
+											{
+												var Translation = Real3{0, 0, 0}
+												var Scale = Real3{1, 1, 1}
+												var Rotation = Quaternion{0, 0, 0, 1}
+											}
+											Model 
+											{
+												var Visible = true
+												var ViewCulling = true
+												var VisibilityEvents = true
+												var OverrideBoundingBox = false
+												var LocalAabbCenter = Real3{0, 0, 0}
+												var LocalAabbHalfExtents = Real3{1, 1, 1}
+												var GroupSortValue = 0
+												var Material = "583afb5e7bf75e18:ZeroMaterial"
+												var Mesh = "5b746e6cbf6a3b6c:Cone"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
