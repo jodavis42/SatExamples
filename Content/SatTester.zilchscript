@@ -99,6 +99,9 @@ class SatTester : ZilchComponent
       var worldNormal = transform.TransformNormal(faceInfo.Normal);
       var worldCenter = transform.TransformPoint(faceInfo.Center);
       DebugDraw.Add(DebugLine(worldCenter, worldCenter + worldNormal) {HeadSize = 0.05, Color = color});
+      
+      // Draw the vertex on the gauss map
+      this.DrawVertex(worldNormal, Colors.Black);
     }
     
     if(logInfo.Poly.Owner == this.Shape0Path.Cog)
