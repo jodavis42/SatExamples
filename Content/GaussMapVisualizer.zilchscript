@@ -1,11 +1,22 @@
+class QueryQMeshEvent : ZilchEvent
+{
+  var QMesh : QMesh;
+}
+
 class GaussMapVisualizer : ZilchComponent
 {
   [Property] var Active : Boolean = true;
   [Property] var TargetPath : CogPath = CogPath();
-  [Property] var IsCogB : Boolean = false;
+  [Property] var Negate : Boolean = false;
   
   [Property] var EdgeColor : Real4 = Colors.Blue;
   [Property] var VertexColor : Real4 = Colors.Red;
+  [Property] var VertexSize : Real = 0.01;
+  
+  var Vertices : Array[Real3] = Array[Real3]();
+  var Edges : Array[Integer2] = Array[Integer2]();
+  
+  sends QueryQMesh : QueryQMeshEvent;
   
   function Initialize(init : CogInitializer)
   {
@@ -17,9 +28,6 @@ class GaussMapVisualizer : ZilchComponent
   {
     this.Run();
   }
-  
-  var Vertices : Array[Real3] = Array[Real3]();
-  var Edges : Array[Integer2] = Array[Integer2]();
   
   function Run()
   {
@@ -33,9 +41,13 @@ class GaussMapVisualizer : ZilchComponent
   {
     var transform = this.TargetPath.Transform;
     
-    var shape = this.TargetPath.PolyedronShape;
-    if(shape != null)
-      this.Compute(shape.Mesh, transform);
+    // Query the target cog for a mesh
+    var targetCog = this.TargetPath.Cog;
+    var toSend = QueryQMeshEvent();
+    targetCog.DispatchEvent(Events.QueryQMesh, toSend);
+    // If we have a mesh then draw the gauss map
+    if(toSend.QMesh != null)
+      this.Compute(toSend.QMesh, transform);
   }
   
   function Compute(mesh : QMesh, transform : Transform)
@@ -46,6 +58,8 @@ class GaussMapVisualizer : ZilchComponent
     foreach(var faceNormal in mesh.FaceNormals)
     {
       faceNormal = Math.Normalize(transform.TransformNormal(faceNormal));
+      if(this.Negate)
+        faceNormal *= -1;
       this.Vertices.Add(faceNormal);
     }
     foreach(var edge in mesh.UniqueEdges)
@@ -65,7 +79,7 @@ class GaussMapVisualizer : ZilchComponent
     {
       var point = center + radius * vertex;
       DebugDraw.Add(DebugLine(center, point));
-      DebugDraw.Add(DebugSphere(point, 0.01) {Color = this.VertexColor});
+      DebugDraw.Add(DebugSphere(point, this.VertexSize) {Color = this.VertexColor});
     }
     
     foreach(var edge in this.Edges)
@@ -91,5 +105,39 @@ class GaussMapVisualizer : ZilchComponent
   {
     if(this.Active)
       this.Draw();
+  }
+}
+
+class CombinedGaussMapVisualizer : ZilchComponent
+{
+  var DrawAInternal : Boolean = true;
+  var DrawBInternal : Boolean = true;
+  var DrawDiffInternal : Boolean = true;
+  
+  [Property] var DrawA : Boolean
+  {
+    get { return this.DrawAInternal; }
+    set { this.DrawAInternal = value; this.Update(this.PathA, value); }
+  }
+  [Property] var DrawB : Boolean
+  {
+    get { return this.DrawBInternal; }
+    set { this.DrawBInternal = value; this.Update(this.PathB, value); }
+  }
+  [Property] var DrawDiff : Boolean
+  {
+    get { return this.DrawDiffInternal; }
+    set { this.DrawDiffInternal = value; this.Update(this.PathDiff, value); }
+  }
+  
+  [Property][Group("Internal")] var PathA : CogPath = CogPath("ObjA");
+  [Property][Group("Internal")] var PathB : CogPath = CogPath("ObjB");
+  [Property][Group("Internal")] var PathDiff : CogPath = CogPath("Diff");
+  
+  function Update(path : CogPath, value : Boolean)
+  {
+    var visualizer = path.GaussMapVisualizer;
+    if(visualizer != null)
+      visualizer.Active = value;
   }
 }

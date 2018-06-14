@@ -12,7 +12,13 @@ class PolyedronShape : ZilchComponent
   
   function Initialize(init : CogInitializer)
   {
+    Zero.Connect(this.Owner, Events.QueryQMesh, this.OnQueryQMesh);
     this.ChangeMesh(this.InputMeshInternal);
+  }
+
+  function OnQueryQMesh(event : QueryQMeshEvent)
+  {
+    event.QMesh = this.Mesh;
   }
   
   function ChangeMesh(mesh : Mesh)

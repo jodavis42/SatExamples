@@ -10,12 +10,21 @@ class MinkowskiHullDifferenceVisualizer : ZilchComponent
   var Cog0 : Cog;
   var Cog1 : Cog;
   
+  var QMesh : QMesh;
+  
   function Initialize(init : CogInitializer)
   {
     Zero.Connect(init, Events.AllObjectsInitialized, this.OnAllObjectsInitialized);
     Zero.Connect(this.Space, Events.FrameUpdate, this.OnFrameUpdate);
+    Zero.Connect(this.Owner, Events.QueryQMesh, this.OnQueryQMesh);
   }
-
+  
+  function OnAllObjectsInitialized(event : CogInitializerEvent)
+  {
+    this.UpdateConnections(null, null);
+    this.UpdateMesh();
+  }
+  
   function OnFrameUpdate(event : UpdateEvent)
   {
     if(this.Cog0 == null || this.Cog1 == null)
@@ -31,11 +40,10 @@ class MinkowskiHullDifferenceVisualizer : ZilchComponent
     origin += this.Owner.Transform.WorldTranslation;
     DebugDraw.Add(DebugSphere(origin, 0.05) {Color = Colors.White});
   }
-
-  function OnAllObjectsInitialized(event : CogInitializerEvent)
+  
+  function OnQueryQMesh(event : QueryQMeshEvent)
   {
-    this.UpdateConnections(null, null);
-    this.UpdateMesh();
+    event.QMesh = this.QMesh;
   }
   
   function UpdateConnections(oldShape0 : Cog, oldShape1 : Cog)
@@ -82,9 +90,9 @@ class MinkowskiHullDifferenceVisualizer : ZilchComponent
     quickHull.Build();
     
     // Store the mesh from quick hull and then update the model
-    var quickHullMesh = QMesh();
-    quickHullMesh.Store(quickHull);
-    this.QuickHullModel.Update(quickHullMesh);
+    this.QMesh = QMesh();
+    this.QMesh.Store(quickHull);
+    this.QuickHullModel.Update(this.QMesh);
   }
   
   function AddVertices(points : Array[Real3], cog : Cog)

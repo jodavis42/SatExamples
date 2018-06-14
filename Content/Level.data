@@ -175,9 +175,9 @@ Level
 		var Name = "EditorCamera"
 		Transform 
 		{
-			var Translation = Real3{1.2023145, 7.73814964, 8.18257904}
+			var Translation = Real3{-4.55624199, 5.87061024, 6.41912746}
 			var Scale = Real3{1, 1, 1}
-			var Rotation = Quaternion{-0.0396537594, 0.153724119, 0.00617416063, 0.987298489}
+			var Rotation = Quaternion{-0.0341742672, -0.202663973, -0.00707715843, 0.978626251}
 		}
 		CameraViewport 
 		{
@@ -234,10 +234,10 @@ Level
 		{
 			var ControlMode = ControlMode.Orbit
 			var Previous3DMode = ControlMode.Orbit
-			var LookDistance = 9.04837704
-			var VerticalAngle = 0.0802846551
-			var HorizontalAngle = -0.308923066
-			var LookTarget = Real3{-1.53982842, 7.01248407, -0.409695506}
+			var LookDistance = 6.39023542
+			var VerticalAngle = 0.0698129386
+			var HorizontalAngle = 0.40840742
+			var LookTarget = Real3{-2.02455354, 5.42485142, 0.56874615}
 			var MoveSensitivity = 1
 		}
 	}
@@ -328,10 +328,10 @@ Level
 	}
 	Cog [ContextId:6]
 	{
-		var Name = "Sphere"
+		var Name = "GaussMapA"
 		Transform 
 		{
-			var Translation = Real3{-2.22779059, 6.23426485, 0}
+			var Translation = Real3{-5.09984589, 6.23426485, 0}
 			var Scale = Real3{1, 1, 1}
 			var Rotation = Quaternion{0, 0, 0, 1}
 		}
@@ -384,14 +384,15 @@ Level
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
-			var IsCogB = false
+			var Negate = true
 			var EdgeColor = Real4{0, 0, 1, 1}
-			var VertexColor = Real4{1, 0, 0, 1}
+			var VertexColor = Real4{0, 0, 1, 1}
+			var VertexSize = 0.00999999978
 		}
 	}
 	Cog [ContextId:8]
 	{
-		var Name = "Sphere"
+		var Name = "GaussMapB"
 		Transform 
 		{
 			var Translation = Real3{-3.68158817, 6.23426485, 0}
@@ -447,9 +448,204 @@ Level
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
 			}
-			var IsCogB = false
-			var EdgeColor = Real4{0.589999914, 1, 0, 1}
-			var VertexColor = Real4{0, 0, 0, 1}
+			var Negate = false
+			var EdgeColor = Real4{1, 0, 0, 1}
+			var VertexColor = Real4{1, 0, 0, 1}
+			var VertexSize = 0.00999999978
+		}
+	}
+	Cog [ContextId:10]
+	{
+		var Name = "CombinedGaussMapVisualizer"
+		Transform 
+		{
+			var Translation = Real3{-5.08289528, 4.906075, 0}
+			var Scale = Real3{1, 1, 1}
+			var Rotation = Quaternion{0, 0, 0, 1}
+		}
+		Model 
+		{
+			var Visible = true
+			var ViewCulling = true
+			var VisibilityEvents = true
+			var OverrideBoundingBox = false
+			var LocalAabbCenter = Real3{0, 0, 0}
+			var LocalAabbHalfExtents = Real3{1, 1, 1}
+			var GroupSortValue = 0
+			var Material = "583afb5e7bf75e18:ZeroMaterial"
+			var Mesh = "4de0354322b376ae:Sphere"
+		}
+		RigidBody 
+		{
+			var Velocity = Real3{0, 0, 0}
+			var AngularVelocity = Real3{0, 0, 0}
+			var DynamicState = RigidBodyDynamicState.Static
+			var AllowSleep = true
+			var Asleep = false
+			var RotationLocked = false
+			var Mode2D = Mode2DStates.InheritFromSpace
+		}
+		SphereCollider 
+		{
+			var Ghost = false
+			var SendsEvents = true
+			var Material = "4de020863e872da8:DefaultPhysicsMaterial"
+			var CollisionGroup = "4e740859314e5515:DefaultGroup"
+			var Offset = Real3{0, 0, 0}
+			var Radius = 0.5
+		}
+		CombinedGaussMapVisualizer 
+		{
+			var DrawA = true
+			var DrawB = true
+			var DrawDiff = true
+			var PathA = CogPath
+			{
+				var Path = "ObjA"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 11
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var PathB = CogPath
+			{
+				var Path = "ObjB"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 12
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+			var PathDiff = CogPath
+			{
+				var Path = "Diff"
+				var ErrorOnResolveToNull = false
+				var ErrorOnPathCantCompute = false
+				var ErrorOnDirectLinkFail = false
+				var UpdateCogOnPathChange = true
+				var UpdatePathOnCogChange = true
+				var UpdateCogOnInitialize = true
+				var ResolvedNullErrorOccurred = false
+				var Cog = 13
+				var PathPreference0 = CogPathPreference.CogRelative
+				var PathPreference1 = CogPathPreference.SpaceRelative
+				var PathPreference2 = CogPathPreference.Absolute
+			}
+		}
+		Hierarchy 
+		{
+			Cog [Id:0x5b7476ed37aeded7][ContextId:11]
+			{
+				var Name = "ObjA"
+				Transform 
+				{
+					var Translation = Real3{0, 0, 0}
+					var Scale = Real3{1, 1, 1}
+					var Rotation = Quaternion{0, 0, 0, 1}
+				}
+				GaussMapVisualizer 
+				{
+					var Active = true
+					var TargetPath = CogPath
+					{
+						var Path = ":/Polyhedron1"
+						var ErrorOnResolveToNull = false
+						var ErrorOnPathCantCompute = false
+						var ErrorOnDirectLinkFail = false
+						var UpdateCogOnPathChange = true
+						var UpdatePathOnCogChange = true
+						var UpdateCogOnInitialize = true
+						var ResolvedNullErrorOccurred = false
+						var Cog = 7
+						var PathPreference0 = CogPathPreference.CogRelative
+						var PathPreference1 = CogPathPreference.SpaceRelative
+						var PathPreference2 = CogPathPreference.Absolute
+					}
+					var Negate = true
+					var EdgeColor = Real4{0, 0, 1, 1}
+					var VertexColor = Real4{0, 0, 1, 1}
+					var VertexSize = 0.00999999978
+				}
+			}
+			Cog [Id:0x5b7476f23588db34][ContextId:12]
+			{
+				var Name = "ObjB"
+				Transform 
+				{
+					var Translation = Real3{0, 0, 0}
+					var Scale = Real3{1, 1, 1}
+					var Rotation = Quaternion{0, 0, 0, 1}
+				}
+				GaussMapVisualizer 
+				{
+					var Active = true
+					var TargetPath = CogPath
+					{
+						var Path = ":/Polyhedron2"
+						var ErrorOnResolveToNull = false
+						var ErrorOnPathCantCompute = false
+						var ErrorOnDirectLinkFail = false
+						var UpdateCogOnPathChange = true
+						var UpdatePathOnCogChange = true
+						var UpdateCogOnInitialize = true
+						var ResolvedNullErrorOccurred = false
+						var Cog = 9
+						var PathPreference0 = CogPathPreference.CogRelative
+						var PathPreference1 = CogPathPreference.SpaceRelative
+						var PathPreference2 = CogPathPreference.Absolute
+					}
+					var Negate = true
+					var EdgeColor = Real4{1, 0, 0, 1}
+					var VertexColor = Real4{1, 0, 0, 1}
+					var VertexSize = 0.00999999978
+				}
+			}
+			Cog [Id:0x5b7476f93ba65831][ContextId:13]
+			{
+				var Name = "Diff"
+				Transform 
+				{
+					var Translation = Real3{0, 0, 0}
+					var Scale = Real3{1, 1, 1}
+					var Rotation = Quaternion{0, 0, 0, 1}
+				}
+				GaussMapVisualizer 
+				{
+					var Active = true
+					var TargetPath = CogPath
+					{
+						var Path = ":/MinkowskiHull"
+						var ErrorOnResolveToNull = false
+						var ErrorOnPathCantCompute = false
+						var ErrorOnDirectLinkFail = false
+						var UpdateCogOnPathChange = true
+						var UpdatePathOnCogChange = true
+						var UpdateCogOnInitialize = true
+						var ResolvedNullErrorOccurred = false
+						var Cog = 14
+						var PathPreference0 = CogPathPreference.CogRelative
+						var PathPreference1 = CogPathPreference.SpaceRelative
+						var PathPreference2 = CogPathPreference.Absolute
+					}
+					var Negate = false
+					var EdgeColor = Real4{0, 0, 1, 0}
+					var VertexColor = Real4{0, 0, 0, 1}
+					var VertexSize = 0.00499999989
+				}
+			}
 		}
 	}
 	Cog [ContextId:9]
@@ -558,12 +754,12 @@ Level
 			var TargetFaceColor = Real4{1, 0, 0, 1}
 		}
 	}
-	Cog [ContextId:10]
+	Cog [ContextId:15]
 	{
 		var Name = "SatSphere"
 		Transform 
 		{
-			var Translation = Real3{-2.22779059, 4.7611351, 0}
+			var Translation = Real3{-2.22779059, 6.17534781, 0}
 			var Scale = Real3{1, 1, 1}
 			var Rotation = Quaternion{0, 0, 0, 1}
 		}
@@ -640,7 +836,7 @@ Level
 				var UpdatePathOnCogChange = true
 				var UpdateCogOnInitialize = true
 				var ResolvedNullErrorOccurred = false
-				var Cog = 11
+				var Cog = 14
 				var PathPreference0 = CogPathPreference.CogRelative
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
@@ -655,7 +851,7 @@ Level
 				var UpdatePathOnCogChange = true
 				var UpdateCogOnInitialize = true
 				var ResolvedNullErrorOccurred = false
-				var Cog = 12
+				var Cog = 16
 				var PathPreference0 = CogPathPreference.CogRelative
 				var PathPreference1 = CogPathPreference.SpaceRelative
 				var PathPreference2 = CogPathPreference.Absolute
@@ -665,7 +861,7 @@ Level
 			var EarlyOut = false
 		}
 	}
-	Cog [ContextId:11]
+	Cog [ContextId:14]
 	{
 		var Name = "MinkowskiHull"
 		Transform 
@@ -744,7 +940,7 @@ Level
 			var DrawOrigin = true
 		}
 	}
-	Cog [ContextId:12]
+	Cog [ContextId:16]
 	{
 		var Name = "MinkowskiDiff"
 		Transform 
