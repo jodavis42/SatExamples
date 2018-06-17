@@ -10,6 +10,9 @@ class SatTester : ZilchComponent
   [Property] var DrawAllEdges : Boolean = true;
   [Property] var EarlyOut : Boolean = false;
   [Property] var DebugDrawEdgeFace : Boolean = false;
+  [Property] var DebugDrawEdgeMinkowskiFace : Boolean = false;
+  
+  [Property] var PointSize : Real = 0.02;
   
   // Used to change the gauss map sphere's color based upon if the edges intersect
   [ShaderInput] var AlbedoValue : Real4 = Colors.DimGray;
@@ -132,29 +135,31 @@ class SatTester : ZilchComponent
       var edge0 = logInfo.Edge0;
       var edge1 = logInfo.Edge1;
       
-      // Draw the edges on the original shapes
-      DebugDraw.Add(DebugLine(edge0.Vertex0, edge0.Vertex1) {Color = Colors.Red});
-      DebugDraw.Add(DebugLine(edge1.Vertex0, edge1.Vertex1) {Color = Colors.Blue});
-      
-      // Draw obj0's edge gauss map
-      this.DrawVertex(edge0.FaceNormal0, Colors.Red);
-      this.DrawVertex(edge0.FaceNormal1, Colors.Red);
-      this.DrawArc(edge0.FaceNormal0, edge0.FaceNormal1, radius, Colors.Red);
-      // Draw obj1's edge gauss map
-      this.DrawVertex(-edge1.FaceNormal0, Colors.Blue);
-      this.DrawVertex(-edge1.FaceNormal1, Colors.Blue);
-      this.DrawArc(-edge1.FaceNormal0, -edge1.FaceNormal1, radius, Colors.Blue);
+      this.DrawEdge(edge0, radius, Colors.Red);
+      this.DrawEdge(edge1, radius, Colors.Blue);
       
       if(this.DebugDrawEdgeFace)
       {
-        var p00 = edge0.Vertex0 - edge1.Vertex0;
-        var p01 = edge0.Vertex0 - edge1.Vertex1;
-        var p10 = edge0.Vertex1 - edge1.Vertex0;
-        var p11 = edge0.Vertex1 - edge1.Vertex1;
+        var center = this.MinkowskiDiffCogPath.Transform.WorldTranslation;
+        var p00 = edge0.Vertex0 - edge1.Vertex0 + center;
+        var p01 = edge0.Vertex0 - edge1.Vertex1 + center;
+        var p10 = edge0.Vertex1 - edge1.Vertex0 + center;
+        var p11 = edge0.Vertex1 - edge1.Vertex1 + center;
         DebugDraw.Add(DebugLine(p00, p01) {OnTop = true});
         DebugDraw.Add(DebugLine(p01, p11) {OnTop = true});
         DebugDraw.Add(DebugLine(p11, p10) {OnTop = true});
         DebugDraw.Add(DebugLine(p10, p00) {OnTop = true});
+      }
+      
+      if(this.DebugDrawEdgeMinkowskiFace)
+      {
+        var edgeDir0 = edge0.GetEdgeDir();
+        var edgeDir1 = edge1.GetEdgeDir();
+        
+        // Compute the edge normal (always make it point from obj0 out)
+        var normal = Math.Normalize(Math.Cross(edgeDir0, edgeDir1));
+        //var normal = Math.Cross(edge0.FaceNormal0, edge0.FaceNormal1);
+        this.DrawPlane(edge0.GetCenter(), normal, 1);
       }
     }
     if(logInfo.IsMinkowski)
@@ -163,6 +168,40 @@ class SatTester : ZilchComponent
     }
     
     ++this.CurrentTestAxisIndex;
+  }
+  
+  function DrawEdge(edge : SatEdge, radius : Real, color : Real4)
+  {
+    DebugDraw.Add(DebugLine(edge.Vertex0, edge.Vertex1) {Color = color});
+    // Draw the points on the original shapes
+    DebugDraw.Add(DebugSphere(edge.Vertex0, this.PointSize) {Color = color});
+    DebugDraw.Add(DebugSphere(edge.Vertex1, this.PointSize) {Color = color});
+    
+    //// Draw obj0's edge gauss map
+    this.DrawVertex(edge.FaceNormal0, color);
+    this.DrawVertex(edge.FaceNormal1, color);
+    this.DrawArc(edge.FaceNormal0, edge.FaceNormal1, radius, color);
+  }
+  
+  function DrawPlane(center : Real3, normal : Real3, size : Real)
+  {
+    var up = Math.Cross(Math.Cross(Real3.YAxis, normal), normal);
+    normal = Math.Normalize(normal);
+    up = Math.Normalize(up);
+    var rotation = Math.ToQuaternion(normal, up);
+    var p0 = center + size * Math.Multiply(rotation, Real3(0.5, 0.5, 0));
+    var p1 = center + size * Math.Multiply(rotation, Real3(0.5, -0.5, 0));
+    var p2 = center + size * Math.Multiply(rotation, Real3(-0.5, -0.5, 0));
+    var p3 = center + size * Math.Multiply(rotation, Real3(-0.5, 0.5, 0));
+    
+    var edgeColor = Colors.Black;
+    var planeColor = Real4(0.5);
+    DebugDraw.Add(DebugLine(p0, p1) {Color = edgeColor});
+    DebugDraw.Add(DebugLine(p1, p2) {Color = edgeColor});
+    DebugDraw.Add(DebugLine(p2, p3) {Color = edgeColor});
+    DebugDraw.Add(DebugLine(p3, p0) {Color = edgeColor});
+    DebugDraw.Add(DebugTriangle(p0, p1, p2) {Filled = true, Color = planeColor});
+    DebugDraw.Add(DebugTriangle(p0, p2, p3) {Filled = true, Color = planeColor});
   }
   
   function DrawArc(p0 : Real3, p1 : Real3, radius : Real, edgeColor : Real4)

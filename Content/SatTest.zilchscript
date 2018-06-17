@@ -65,6 +65,16 @@ class SatEdge
     this.Compute(poly, edgeIndex);
     this.TransformToWorld(poly);
   }
+  
+  function GetCenter() : Real3
+  {
+    return Math.Lerp(this.Vertex0, this.Vertex1, 0.5);
+  }
+  
+  function GetEdgeDir() : Real3
+  {
+    return this.Vertex1 - this.Vertex0;
+  }
 }
 
 class SatFaceLogInfo

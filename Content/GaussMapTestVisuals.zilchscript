@@ -1,0 +1,171 @@
+class GaussMapEdgeTestDef
+{
+  var Edge0 : SatEdge;
+  var Edge1 : SatEdge;
+}
+
+class GaussMapTestVisuals : ZilchComponent
+{
+  var Tests : Array[GaussMapEdgeTestDef] = Array[GaussMapEdgeTestDef]();
+  [Property] var CurrentTest : Integer = 0;
+  
+  [Property] var PlaneColor : Real4 = Colors.Gray;
+  [Property] var PlaneEdgeColor : Real4 = Colors.Black;
+  [Property] var PlaneSize : Real = 1.5;
+  [Property] var TextSize : Real = 0.07;
+  
+  [Property] var PlaneToDraw : Integer = 0;
+  
+  function Initialize(init : CogInitializer)
+  {
+    var test1 = GaussMapEdgeTestDef()
+    {
+      Edge0 = SatEdge()
+      {
+        FaceNormal0 = this.MakePoint(-60, 0),
+        FaceNormal1 = this.MakePoint(60, 0)
+      },
+      Edge1 = SatEdge()
+      {
+        FaceNormal0 = this.MakePoint(0, -60),
+        FaceNormal1 = this.MakePoint(0, 60)
+      }
+    };
+    var test2 = GaussMapEdgeTestDef()
+    {
+      Edge0 = SatEdge()
+      {
+        FaceNormal0 = this.MakePoint(-60, 180),
+        FaceNormal1 = this.MakePoint(60, 180)
+      },
+      Edge1 = SatEdge()
+      {
+        FaceNormal0 = this.MakePoint(0, -60),
+        FaceNormal1 = this.MakePoint(0, 60)
+      }
+    };
+    this.Tests.Add(test1);
+    this.Tests.Add(test2);
+    Zero.Connect(this.Space, Events.LogicUpdate, this.OnLogicUpdate);
+    Zero.Connect(Zero.Keyboard, Events.KeyDown, this.OnKeyDown);
+  }
+  
+  // Makes a point on a unit sphere given spherical coordinates
+  function MakePoint(phiDeg : Real, thetaDeg : Real) : Real3
+  {
+    var phi = Math.ToRadians(phiDeg + 90);
+    var theta = Math.ToRadians(thetaDeg);
+    var point = Real3();
+    point.X = Math.Cos(theta) * Math.Sin(phi);
+    point.Y = Math.Cos(phi);
+    point.Z = Math.Sin(theta) * Math.Sin(phi);
+    return point;
+  }
+
+  function OnKeyDown(event : KeyboardEvent)
+  {
+    // Toggle test number
+    if(event.Key == Keys.Add || event.Key == Keys.Equal)
+      ++this.CurrentTest;
+    if(event.Key == Keys.Subtract || event.Key == Keys.Minus)
+      --this.CurrentTest;
+    this.CurrentTest = Math.Clamp(this.CurrentTest, 0, this.Tests.Count - 1);
+    
+    // Toggle sub-test to draw
+    if(event.Key == Keys.Zero)
+      this.PlaneToDraw = 0;
+    if(event.Key == Keys.One)
+      this.PlaneToDraw = 1;
+    if(event.Key == Keys.Two)
+      this.PlaneToDraw = 2;
+    if(event.Key == Keys.Three)
+      this.PlaneToDraw = 3;
+  }
+
+  function OnLogicUpdate(event : UpdateEvent)
+  {
+    var test = this.Tests[this.CurrentTest];
+    
+    var radius = 0.5;
+    var textRadius = radius * 1.1;
+    // Draw the arcs and label the points
+    this.DrawEdge(test.Edge0, Colors.Red, radius);
+    this.LabelEdge(test.Edge0, "a", "b", textRadius);
+    this.DrawEdge(test.Edge1, Colors.Blue, radius);
+    this.LabelEdge(test.Edge1, "c", "d", textRadius);
+    
+    // Draw the sub-test (sub SAT plane test)
+    if(this.PlaneToDraw == 1)
+      this.DrawEdgePlane(test.Edge0);
+    if(this.PlaneToDraw == 2)
+      this.DrawEdgePlane(test.Edge1);
+    if(this.PlaneToDraw == 3)
+    {
+      var otherEdge = SatEdge() {FaceNormal0 = test.Edge0.FaceNormal1, FaceNormal1 = test.Edge1.FaceNormal0};
+      this.DrawEdgePlane(otherEdge);
+    }
+  }
+  
+  function DrawEdge(edge : SatEdge, color : Real4, radius : Real)
+  {
+    this.DrawVertex(edge.FaceNormal0, color, radius);
+    this.DrawVertex(edge.FaceNormal1, color, radius);
+    this.DrawArc(edge.FaceNormal0, edge.FaceNormal1, radius, color);
+  }
+  
+  function LabelEdge(edge : SatEdge, vertex0Name : String, vertex1Name : String, radius : Real)
+  {
+    var center = this.Owner.Transform.WorldTranslation;
+    var p0 = radius * edge.FaceNormal0 + center;
+    var p1 = radius * edge.FaceNormal1 + center;
+    
+    DebugDraw.Add(DebugText(p0, this.TextSize, vertex0Name) {Color = Colors.Black, ViewAligned = true, Centered = true});
+    DebugDraw.Add(DebugText(p1, this.TextSize, vertex1Name) {Color = Colors.Black, ViewAligned = true, Centered = true});
+  }
+  
+  function DrawArc(p0 : Real3, p1 : Real3, radius : Real, edgeColor : Real4)
+  {
+    p0 = Math.Normalize(p0);
+    p1 = Math.Normalize(p1);
+    var center = this.Owner.Transform.WorldTranslation;
+    
+    var mid = Math.Slerp(p0, p1, 0.5);
+    p0 = p0 * radius + center;
+    p1 = p1 * radius + center;
+    mid = mid * radius + center;
+    DebugDraw.Add(DebugArc(p0, mid, p1) { Color = edgeColor});
+  }
+  
+  function DrawVertex(vertex : Real3, vertexColor : Real4, radius : Real)
+  {
+    vertex = Math.Normalize(vertex);
+    var center = this.Owner.Transform.WorldTranslation;
+    var point = center + radius * vertex;
+    DebugDraw.Add(DebugSphere(point, 0.01) {Color = vertexColor});
+  }
+  
+  function DrawEdgePlane(edge : SatEdge)
+  {
+    // Compute a rotation from the edge
+    var edgeNormal = Math.Cross(edge.FaceNormal0, edge.FaceNormal1);
+    var up = Math.Cross(Math.Cross(Real3.YAxis, edgeNormal), edgeNormal);
+    edgeNormal = Math.Normalize(edgeNormal);
+    up = Math.Normalize(up);
+    var rotation = Math.ToQuaternion(edgeNormal, up);
+    // Compute the 4 quad points
+    var center = this.Owner.Transform.WorldTranslation;
+    var p0 = center + this.PlaneSize * Math.Multiply(rotation, Real3(0.5, 0.5, 0));
+    var p1 = center + this.PlaneSize * Math.Multiply(rotation, Real3(0.5, -0.5, 0));
+    var p2 = center + this.PlaneSize * Math.Multiply(rotation, Real3(-0.5, -0.5, 0));
+    var p3 = center + this.PlaneSize * Math.Multiply(rotation, Real3(-0.5, 0.5, 0));
+    
+    // Draw the border
+    DebugDraw.Add(DebugLine(p0, p1) {Color = this.PlaneEdgeColor});
+    DebugDraw.Add(DebugLine(p1, p2) {Color = this.PlaneEdgeColor});
+    DebugDraw.Add(DebugLine(p2, p3) {Color = this.PlaneEdgeColor});
+    DebugDraw.Add(DebugLine(p3, p0) {Color = this.PlaneEdgeColor});
+    // Draw the filled quad
+    DebugDraw.Add(DebugTriangle(p0, p1, p2) {Filled = true, Color = this.PlaneColor});
+    DebugDraw.Add(DebugTriangle(p0, p2, p3) {Filled = true, Color = this.PlaneColor});
+  }
+}

@@ -8,6 +8,7 @@ class GaussMapVisualizer : ZilchComponent
   [Property] var Active : Boolean = true;
   [Property] var TargetPath : CogPath = CogPath();
   [Property] var Negate : Boolean = false;
+  [Property] var DrawOriginalFaceNormals : Boolean = false;
   
   [Property] var EdgeColor : Real4 = Colors.Blue;
   [Property] var VertexColor : Real4 = Colors.Red;
@@ -16,6 +17,7 @@ class GaussMapVisualizer : ZilchComponent
   var Vertices : Array[Real3] = Array[Real3]();
   var Edges : Array[Integer2] = Array[Integer2]();
   
+  var TargetCenter : Real3 = Real3();
   sends QueryQMesh : QueryQMeshEvent;
   
   function Initialize(init : CogInitializer)
@@ -40,6 +42,7 @@ class GaussMapVisualizer : ZilchComponent
   function Compute()
   {
     var transform = this.TargetPath.Transform;
+    this.TargetCenter = transform.WorldTranslation;
     
     // Query the target cog for a mesh
     var targetCog = this.TargetPath.Cog;
@@ -78,6 +81,8 @@ class GaussMapVisualizer : ZilchComponent
     foreach(var vertex in this.Vertices)
     {
       var point = center + radius * vertex;
+      if(this.DrawOriginalFaceNormals)
+        DebugDraw.Add(DebugLine(this.TargetCenter, this.TargetCenter + vertex)  {Color = this.VertexColor, HeadSize = 0.05});
       DebugDraw.Add(DebugLine(center, point));
       DebugDraw.Add(DebugSphere(point, this.VertexSize) {Color = this.VertexColor});
     }
