@@ -175,9 +175,9 @@ Level
 		var Name = "EditorCamera"
 		Transform 
 		{
-			var Translation = Real3{-4.55624199, 5.87061024, 6.41912746}
+			var Translation = Real3{-11.8898449, 13.4993668, -11.2300243}
 			var Scale = Real3{1, 1, 1}
-			var Rotation = Quaternion{-0.0341742672, -0.202663973, -0.00707715843, 0.978626251}
+			var Rotation = Quaternion{0.0816766396, 0.912661314, 0.2250157, -0.331279576}
 		}
 		CameraViewport 
 		{
@@ -234,9 +234,9 @@ Level
 		{
 			var ControlMode = ControlMode.Orbit
 			var Previous3DMode = ControlMode.Orbit
-			var LookDistance = 6.39023542
-			var VerticalAngle = 0.0698129386
-			var HorizontalAngle = 0.40840742
+			var LookDistance = 17.3704567
+			var VerticalAngle = 0.483455986
+			var HorizontalAngle = 2.44520688
 			var LookTarget = Real3{-2.02455354, 5.42485142, 0.56874615}
 			var MoveSensitivity = 1
 		}
@@ -385,6 +385,7 @@ Level
 				var PathPreference2 = CogPathPreference.Absolute
 			}
 			var Negate = true
+			var DrawOriginalFaceNormals = false
 			var EdgeColor = Real4{0, 0, 1, 1}
 			var VertexColor = Real4{0, 0, 1, 1}
 			var VertexSize = 0.00999999978
@@ -449,6 +450,7 @@ Level
 				var PathPreference2 = CogPathPreference.Absolute
 			}
 			var Negate = false
+			var DrawOriginalFaceNormals = false
 			var EdgeColor = Real4{1, 0, 0, 1}
 			var VertexColor = Real4{1, 0, 0, 1}
 			var VertexSize = 0.00999999978
@@ -575,6 +577,7 @@ Level
 						var PathPreference2 = CogPathPreference.Absolute
 					}
 					var Negate = true
+					var DrawOriginalFaceNormals = false
 					var EdgeColor = Real4{0, 0, 1, 1}
 					var VertexColor = Real4{0, 0, 1, 1}
 					var VertexSize = 0.00999999978
@@ -608,6 +611,7 @@ Level
 						var PathPreference2 = CogPathPreference.Absolute
 					}
 					var Negate = true
+					var DrawOriginalFaceNormals = false
 					var EdgeColor = Real4{1, 0, 0, 1}
 					var VertexColor = Real4{1, 0, 0, 1}
 					var VertexSize = 0.00999999978
@@ -641,6 +645,7 @@ Level
 						var PathPreference2 = CogPathPreference.Absolute
 					}
 					var Negate = false
+					var DrawOriginalFaceNormals = false
 					var EdgeColor = Real4{0, 0, 1, 0}
 					var VertexColor = Real4{0, 0, 0, 1}
 					var VertexSize = 0.00499999989
@@ -828,21 +833,6 @@ Level
 			}
 			var MinkowskiDiffCogPath = CogPath
 			{
-				var Path = ":/MinkowskiHull"
-				var ErrorOnResolveToNull = false
-				var ErrorOnPathCantCompute = false
-				var ErrorOnDirectLinkFail = false
-				var UpdateCogOnPathChange = true
-				var UpdatePathOnCogChange = true
-				var UpdateCogOnInitialize = true
-				var ResolvedNullErrorOccurred = false
-				var Cog = 14
-				var PathPreference0 = CogPathPreference.CogRelative
-				var PathPreference1 = CogPathPreference.SpaceRelative
-				var PathPreference2 = CogPathPreference.Absolute
-			}
-			var MinkowskiDiff2CogPath = CogPath
-			{
 				var Path = ":/MinkowskiDiff"
 				var ErrorOnResolveToNull = false
 				var ErrorOnPathCantCompute = false
@@ -859,6 +849,9 @@ Level
 			var TargetTestIndex = 0
 			var DrawAllEdges = true
 			var EarlyOut = false
+			var DebugDrawEdgeFace = true
+			var DebugDrawEdgeMinkowskiFace = false
+			var PointSize = 0.0199999996
 		}
 	}
 	Cog [ContextId:14]
@@ -938,6 +931,11 @@ Level
 				var PathPreference2 = CogPathPreference.Absolute
 			}
 			var DrawOrigin = true
+		}
+		TargetFaceOverride 
+		{
+			var TargetFaceIndex = -1
+			var TargetFaceColor = Real4{1, 0, 0, 1}
 		}
 	}
 	Cog [ContextId:16]

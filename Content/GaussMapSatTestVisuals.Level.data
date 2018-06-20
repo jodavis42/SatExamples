@@ -175,9 +175,9 @@ Level
 		var Name = "EditorCamera"
 		Transform 
 		{
-			var Translation = Real3{-48.2537727, 6.25774527, -10.5413771}
+			var Translation = Real3{-7.74338865, 3.15750885, 1.73084998}
 			var Scale = Real3{1, 1, 1}
-			var Rotation = Quaternion{-0.00054375577, -0.782064438, -0.000682371901, 0.6231969}
+			var Rotation = Quaternion{-0.146906897, -0.614065588, -0.117694654, 0.766478896}
 		}
 		CameraViewport 
 		{
@@ -234,10 +234,10 @@ Level
 		{
 			var ControlMode = ControlMode.Orbit
 			var Previous3DMode = ControlMode.Orbit
-			var LookDistance = 47.2177773
-			var VerticalAngle = 0.00174505264
-			var HorizontalAngle = 1.79594421
-			var LookTarget = Real3{-2.22779059, 6.17534781, 0}
+			var LookDistance = 8.53965855
+			var VerticalAngle = 0.378736168
+			var HorizontalAngle = 1.35088515
+			var LookTarget = Real3{0, 0, 0}
 			var MoveSensitivity = 1
 		}
 	}
@@ -331,7 +331,7 @@ Level
 		var Name = "SatSphere"
 		Transform 
 		{
-			var Translation = Real3{-2.22779059, 6.17534781, 0}
+			var Translation = Real3{0, 0, 0}
 			var Scale = Real3{0.99000001, 0.99000001, 0.99000001}
 			var Rotation = Quaternion{0, 0, 0, 1}
 		}
@@ -344,7 +344,7 @@ Level
 			var LocalAabbCenter = Real3{0, 0, 0}
 			var LocalAabbHalfExtents = Real3{1, 1, 1}
 			var GroupSortValue = 0
-			var Material = "5b193c9b69124bc5:OpaqueFlatCopy1"
+			var Material = "5828b036bd65b5d8:OpaqueFlat"
 			var Mesh = "4de0354322b376ae:Sphere"
 		}
 		RigidBody 
@@ -371,6 +371,8 @@ Level
 			var CurrentTest = 0
 			var PlaneColor = Real4{0.498039216, 0.498039216, 0.498039216, 0.5}
 			var PlaneEdgeColor = Real4{0, 0, 0, 1}
+			var PlaneSize = 1.5
+			var TextSize = 0.0700000003
 			var PlaneToDraw = 0
 		}
 	}

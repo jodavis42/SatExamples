@@ -585,7 +585,7 @@ Level
 				var PathPreference2 = CogPathPreference.Absolute
 			}
 			var TargetTestIndex = 0
-			var DrawAllEdges = true
+			var DrawAllEdges = false
 			var EarlyOut = false
 			var DebugDrawEdgeFace = false
 			var DebugDrawEdgeMinkowskiFace = false

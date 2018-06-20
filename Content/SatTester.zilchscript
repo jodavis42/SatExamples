@@ -135,8 +135,8 @@ class SatTester : ZilchComponent
       var edge0 = logInfo.Edge0;
       var edge1 = logInfo.Edge1;
       
-      this.DrawEdge(edge0, radius, Colors.Red);
-      this.DrawEdge(edge1, radius, Colors.Blue);
+      this.DrawEdge(edge0, radius, 1, Colors.Red);
+      this.DrawEdge(edge1, radius, -1, Colors.Blue);
       
       if(this.DebugDrawEdgeFace)
       {
@@ -170,17 +170,21 @@ class SatTester : ZilchComponent
     ++this.CurrentTestAxisIndex;
   }
   
-  function DrawEdge(edge : SatEdge, radius : Real, color : Real4)
+  function DrawEdge(edge : SatEdge, radius : Real, sign : Real, color : Real4)
   {
-    DebugDraw.Add(DebugLine(edge.Vertex0, edge.Vertex1) {Color = color});
+    var v0 = edge.Vertex0;
+    var v1 = edge.Vertex1;
+    DebugDraw.Add(DebugLine(v0, v1) {Color = color});
     // Draw the points on the original shapes
-    DebugDraw.Add(DebugSphere(edge.Vertex0, this.PointSize) {Color = color});
-    DebugDraw.Add(DebugSphere(edge.Vertex1, this.PointSize) {Color = color});
+    DebugDraw.Add(DebugSphere(v0, this.PointSize) {Color = color});
+    DebugDraw.Add(DebugSphere(v1, this.PointSize) {Color = color});
     
-    //// Draw obj0's edge gauss map
-    this.DrawVertex(edge.FaceNormal0, color);
-    this.DrawVertex(edge.FaceNormal1, color);
-    this.DrawArc(edge.FaceNormal0, edge.FaceNormal1, radius, color);
+    var n0 = edge.FaceNormal0 * sign;
+    var n1 = edge.FaceNormal1 * sign;
+    // Draw the edge gauss map
+    this.DrawVertex(n0, color);
+    this.DrawVertex(n1, color);
+    this.DrawArc(n0, n1, radius, color);
   }
   
   function DrawPlane(center : Real3, normal : Real3, size : Real)
